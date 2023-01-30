@@ -11,7 +11,6 @@ public class Pigeon extends SubsystemBase {
   private double roll = 0;
   private double[] ypr;
 
-    /** Creates a new ExampleSubsystem. */
   public Pigeon (int CAN_ID) {
     pigeon = new Pigeon2(CAN_ID);
   }
