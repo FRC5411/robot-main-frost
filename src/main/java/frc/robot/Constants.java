@@ -60,4 +60,10 @@ public final class Constants {
         public static final double DRIVE_kP = 0.044057;
         public static final double DRIVE_kF = 0.028998;
     }
+        public class ARM {        
+            public static final double LOW_DIST = 0;        
+            public static final double HIGH_DIST = 0;        
+            public static final double biscep_length = 20;        
+            public static final double elbow_lenght = 30;   
+    }
 }
