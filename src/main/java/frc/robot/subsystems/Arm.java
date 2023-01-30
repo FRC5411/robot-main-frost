@@ -43,9 +43,9 @@ public class Arm extends SubsystemBase {
   
   public void high_score() {
       double l = Constants.ARM.HIGH_DIST;
-      double no = 0;
+      double donthaveconstants = 0;
       double whole_angle = Math.acos((500 - Math.pow(l, 2))/(40 * l));    
-      double part_angle = Math.atan(no);     
+      double part_angle = Math.atan(donthaveconstants);     
       double a_angle = whole_angle - part_angle;    
       setarm(a_angle);    
       double e_angle = 180 - (whole_angle + Math.acos((1300-Math.pow(l, 2))/1200));    
