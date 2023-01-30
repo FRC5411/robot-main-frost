@@ -1,10 +1,11 @@
 package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.*;;
 public class Arm extends SubsystemBase {  
   private final CANSparkMax bisceps;  
   private final CANSparkMax elbows;  
@@ -16,11 +17,18 @@ public class Arm extends SubsystemBase {
   public Arm() {    
       bisceps = new CANSparkMax(1, MotorType.kBrushless);    
       elbows = new CANSparkMax(2, MotorType.kBrushless);
-      b_encoder = bisceps.getEncoder();    e_encoder = elbows.getEncoder();
+
+      bisceps.setIdleMode(IdleMode.kBrake);
+      elbows.setIdleMode(IdleMode.kBrake);
+
+      b_encoder = bisceps.getEncoder();
+      e_encoder = elbows.getEncoder();
+
+      b_encoder.setPositionConversionFactor(2*Math.PI);
+      e_encoder.setPositionConversionFactor(2*Math.PI);
+
       arm_pid = new PIDController(0, 0, 0);    
       elbow_pid = new PIDController(0, 0, 0);
-      b_encoder.setPositionConversionFactor(2*Math.PI);    
-      e_encoder.setPositionConversionFactor(2*Math.PI);  
   }
   
   public void setarm(double angle) {
@@ -32,7 +40,7 @@ public class Arm extends SubsystemBase {
   }
   public void low_score_arm() 
   {
-      double l = Constants.ARM.LOW_DIST;
+      double l = ARM.LOW_DIST;
       double no = 0;    
       double whole_angle = Math.acos((500 - Math.pow(l, 2))/(40 * l));    
       double part_angle = Math.atan(no);     double a_angle = whole_angle - part_angle;    
@@ -42,7 +50,7 @@ public class Arm extends SubsystemBase {
   }
   
   public void high_score() {
-      double l = Constants.ARM.HIGH_DIST;
+      double l = ARM.HIGH_DIST;
       double donthaveconstants = 0;
       double whole_angle = Math.acos((500 - Math.pow(l, 2))/(40 * l));    
       double part_angle = Math.atan(donthaveconstants);     
@@ -53,5 +61,6 @@ public class Arm extends SubsystemBase {
   }
   
   @Override  public void periodic() {}
+  
   @Override  public void simulationPeriodic() {}
 }
