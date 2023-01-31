@@ -71,10 +71,10 @@ public class PinchersofPower extends SubsystemBase
   }
 
   public void intake(Boolean cone) {
-    if(pusher.get() == Value.kForward && cone != true) {
+    if((pusher.get() == Value.kForward) && (cone != true)) {
       reverse();
     }
-    if(pusher.get() != Value.kForward && cone == true) {
+    if((pusher.get() != Value.kForward) && (cone == true)) {
       forward();
     }
     spinin();
