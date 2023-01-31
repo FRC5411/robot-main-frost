@@ -1,16 +1,12 @@
 package frc.robot;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Limelight;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.PinchersofPower;
@@ -51,9 +47,5 @@ public class RobotContainer {
   private void configureButtonBindings() {
     aButton.onTrue(new InstantCommand(m_swerve::toggleRobotOrient, m_swerve));
     bButton.onTrue(new InstantCommand(m_swerve::zeroGyro, m_swerve));
-  }
-
-  public Command getAutonomousCommand(Command command) {
-    return command;
   }
 }
