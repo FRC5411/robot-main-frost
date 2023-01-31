@@ -1,4 +1,7 @@
+//Root Package
 package frc.robot.subsystems;
+
+//Libraries
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -26,7 +29,11 @@ import frc.robot.Constants;
 import static frc.robot.Constants.DRIVETRAIN.*;
 import static frc.robot.Constants.CAN.*;
 
-public class Drivetrain extends SubsystemBase {
+/*
+ * Swerve Drive Train Class
+ */
+public class Drivetrain extends SubsystemBase 
+{
   private final Pigeon m_gyro;
 
   private SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
@@ -113,8 +120,12 @@ public class Drivetrain extends SubsystemBase {
   private double _rotationKi = 0;
   private double _rotationKd = 1;
 
-  /** Creates a new ExampleSubsystem. */
-  public Drivetrain(Pigeon m_gyro) {
+  /** 
+  * Creates a new DriveTrain. 
+  * @param m_gyro - the main gyroscope
+  */
+  public Drivetrain(Pigeon m_gyro) 
+  {
     this.m_gyro = m_gyro;
     
     Telemetry.setValue("drivetrain/PathPlanner/translationKp", _translationKp);
@@ -146,7 +157,8 @@ public class Drivetrain extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void periodic() 
+  {
     // This method will be called once per scheduler run
 
     _translationKp = Telemetry.getValue("drivetrain/PathPlanner/translationKp", 0);
@@ -229,6 +241,12 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void simulationPeriodic() {}
 
+  /**
+   * Move Drivetrain Given Joystick Component Inputs
+   * @param LX - Left X Joystick Component
+   * @param LY - Left Y Joystick Component
+   * @param RX - Right X Joystick Component
+   */
   public void joystickDrive(double LX, double LY, double RX) {
 
     // WPILib swerve command
@@ -248,6 +266,10 @@ public class Drivetrain extends SubsystemBase {
     driveFromModuleStates(modules);
   }
 
+  /**
+   * Drive based on Module States
+   * @param modules - The modules to drive
+   */
   public void driveFromModuleStates ( SwerveModuleState[] modules ) {
     SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
 

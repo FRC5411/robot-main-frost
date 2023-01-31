@@ -54,7 +54,13 @@ public final class Constants {
             public static final double HIGH_DIST = 0;
             public static final double HIGH_X = 0;
             public static final double HIGH_Y = 0;        
-            public static final double biscep_length = 20;        
-            public static final double elbow_lenght = 30;   
+            public static final double BISCEP_LENGTH = 20;        
+            public static final double ELBOW_LENGTH = 30;   
     }
+
+        public class POP {
+            public static final double F = 0;
+            public static final double R = 0;
+            public static final double SPEED = 0.5;
+        }
 }

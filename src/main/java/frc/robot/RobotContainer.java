@@ -11,11 +11,13 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Pigeon;
+import frc.robot.subsystems.PinchersofPower;
 import static frc.robot.Constants.CAN.*;
 
 public class RobotContainer {
   private final Pigeon m_gyro = new Pigeon(PIGEON_ID);
   private final Arm m_arm = new Arm();
+  private final PinchersofPower claw;
   private final Drivetrain m_swerve = new Drivetrain(m_gyro);
   private final Limelight m_limelight = new Limelight();
   private final LEDs m_LEDs = new LEDs();
@@ -28,6 +30,7 @@ public class RobotContainer {
 
   public RobotContainer() {
     m_gyro.zeroYaw();
+    claw = new PinchersofPower();
 
     configureButtonBindings();
 
@@ -37,5 +40,9 @@ public class RobotContainer {
   private void configureButtonBindings() {
     aButton.onTrue(new InstantCommand(m_swerve::toggleRobotOrient, m_swerve));
     bButton.onTrue(new InstantCommand(m_swerve::zeroGyro, m_swerve));
+  }
+
+  public Command getAutonomousCommand(Command command) {
+    return command;
   }
 }

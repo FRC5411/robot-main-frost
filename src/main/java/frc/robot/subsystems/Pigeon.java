@@ -1,59 +1,80 @@
+//Root Package
 package frc.robot.subsystems;
+
+//Libraries
 import com.ctre.phoenix.sensors.Pigeon2;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Telemetry;
 
-public class Pigeon extends SubsystemBase {
-  private Pigeon2 pigeon;
+/**
+ * Pigeon Gyroscope Wrapper Class
+ */
+public class Pigeon extends SubsystemBase 
+{
+  //Primary Gyroscope
+  private Pigeon2 M_Gyro;
 
-  private double yaw = 0;
-  private double pitch = 0;
-  private double roll = 0;
-  private double[] ypr;
+  //Gyroscope Data
+  private double Yaw = 0;
+  private double Pitch = 0;
+  private double Roll = 0;
+  private double[] YPR;
 
-  public Pigeon (int CAN_ID) {
-    pigeon = new Pigeon2(CAN_ID);
-  }
+  /**
+   * Pigeon Class Constructor
+   */
+  public Pigeon (int CAN_ID) {M_Gyro = new Pigeon2(CAN_ID);}
 
-  public Pigeon2 getPigeon () {
-      return pigeon;
-  }
+  /**
+   * Return the M_Gyro
+   */
+  public Pigeon2 getGyro () {return M_Gyro;}
 
-  public double getYaw() {
-    return yaw;
-  }
 
-  public double getPitch () {
-    return pitch;
-  }
+  /**
+   * Return the M_Gyro Yaw as double
+   */
+  public double getYaw() {return Yaw;}
 
-  public double getRoll () {
-    return roll;
-  }
+  /**
+   * Return the M_Gyro Pitch as double
+   */
+  public double getPitch () {return Pitch;}
 
-  public double[] getYPR () {
-    return ypr;
-  }
+  /**
+   * Return the M_Gyro Roll as double
+   */
+  public double getRoll () {return Roll;}
 
-  public void zeroYaw () {
-    pigeon.setYaw(0);
+  /**
+   * Return the M_Gyro Yaw,Pitch,Roll as double list
+   */
+  public double[] getYPR () {return YPR;}
+
+  /**
+   * Zero the M_Gyro Yaw at current value
+   */
+  public void zeroYaw () {M_Gyro.setYaw(0);}
+
+  /**
+   * Pigeon Class Periodic
+   */
+  @Override
+  public void periodic() 
+  {
+    //Update Data
+    Yaw = M_Gyro.getYaw();
+    Pitch = M_Gyro.getPitch();
+    Roll = M_Gyro.getRoll();
+    M_Gyro.getYawPitchRoll(YPR);
+
+    //Telemetry Update
+    Telemetry.setValue("drivetrain/gyro/temperature", M_Gyro.getTemp());
+    Telemetry.setValue("drivetrain/gyro/yaw", Yaw);
+    Telemetry.setValue("drivetrain/gyro/roll", Roll);
+    Telemetry.setValue("drivetrain/gyro/pitch", Pitch);
   }
 
   @Override
-  public void periodic() {
-    yaw = pigeon.getYaw();
-    pitch = pigeon.getPitch();
-    roll = pigeon.getRoll();
-    pigeon.getYawPitchRoll(ypr);
-
-    Telemetry.setValue("drivetrain/gyro/temperature", pigeon.getTemp());
-    Telemetry.setValue("drivetrain/gyro/yaw", yaw);
-    Telemetry.setValue("drivetrain/gyro/roll", roll);
-    Telemetry.setValue("drivetrain/gyro/pitch", pitch);
-  }
-
-  @Override
-  public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
-  }
+  public void simulationPeriodic() {}
 }
