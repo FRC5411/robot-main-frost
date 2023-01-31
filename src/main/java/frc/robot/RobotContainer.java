@@ -21,12 +21,8 @@ public class RobotContainer {
   private final LEDs m_LEDs = new LEDs();
   private final CommandXboxController driver;
   private final CommandGenericHID copilot;
-
-//  private final XboxController driver = new XboxController(0);
-//  private final GenericHID copilot = new GenericHID(1);
-  
-  Trigger aButton;
-  Trigger bButton;
+  private final Trigger aButton;
+  private final Trigger bButton;
 
   public RobotContainer() {
     claw = new PinchersofPower();
