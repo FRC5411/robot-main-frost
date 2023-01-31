@@ -70,6 +70,24 @@ public class PinchersofPower extends SubsystemBase
     comp.disable();
   }
 
+  public void intake(Boolean cone) {
+    if(pusher.get() == Value.kForward && cone != true) {
+      reverse();
+    }
+    if(pusher.get() != Value.kForward && cone == true) {
+      forward();
+    }
+    spinin();
+  }
+
+  public void outtake() {
+    spinout();
+  }
+
+  public void notake() {
+    spinoff();
+    off();
+  }
 
   @Override
   public void periodic() {}

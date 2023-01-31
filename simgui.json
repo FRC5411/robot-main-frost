@@ -1,4 +1,11 @@
 {
+  "HALProvider": {
+    "Solenoids": {
+      "window": {
+        "visible": true
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo"
