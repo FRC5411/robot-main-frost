@@ -12,14 +12,18 @@ public class Limelight extends SubsystemBase
 {
   public Limelight() {}
 
-  /**
-   * Return Yaw as Double
-   */
-  public double getyaw() {return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);}
-  /**
-   * Return Pitch as Double
-   */
-  public double getpitch() {return NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0);}
+  public double getyaw() {
+    return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
+  }
+
+  public double getpitch() {
+    return NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0);
+  }
+
+  public double getarea() {
+    return NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0);
+  }
+
 
   @Override
   public void periodic() {}
