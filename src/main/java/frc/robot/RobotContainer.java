@@ -8,6 +8,8 @@ import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Limelight;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Pigeon;
@@ -21,17 +23,26 @@ public class RobotContainer {
   private final Drivetrain m_swerve = new Drivetrain(m_gyro);
   private final Limelight m_limelight = new Limelight();
   private final LEDs m_LEDs = new LEDs();
+  private final CommandXboxController driver;
+  private final CommandGenericHID copilot;
 
-  private final XboxController driver = new XboxController(0);
-  private final GenericHID copilot = new GenericHID(1);
+//  private final XboxController driver = new XboxController(0);
+//  private final GenericHID copilot = new GenericHID(1);
   
-  Trigger aButton = new JoystickButton(driver, 1);
-  Trigger bButton = new JoystickButton(driver, 2);
+  Trigger aButton;
+  Trigger bButton;
 
   public RobotContainer() {
-    m_gyro.zeroYaw();
     claw = new PinchersofPower();
 
+    driver = new CommandXboxController(0);
+    copilot = new CommandGenericHID(1);
+
+    aButton = driver.a();
+    bButton = driver.b();
+    
+    m_gyro.zeroYaw();
+    
     configureButtonBindings();
 
     m_swerve.setDefaultCommand(new DriveCommand(m_swerve, driver));
