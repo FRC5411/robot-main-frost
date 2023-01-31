@@ -1,5 +1,22 @@
 {
   "HALProvider": {
+    "Other Devices": {
+      "Compressor[0]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Compressor[1]": {
+        "header": {
+          "open": true
+        }
+      },
+      "SPARK MAX [25]": {
+        "header": {
+          "open": true
+        }
+      }
+    },
     "Solenoids": {
       "window": {
         "visible": true
