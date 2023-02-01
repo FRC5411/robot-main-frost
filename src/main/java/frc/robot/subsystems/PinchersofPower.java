@@ -4,11 +4,11 @@ package frc.robot.subsystems;
 //Libraries
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.POP;
 
@@ -23,7 +23,7 @@ public class PinchersofPower extends SubsystemBase
   private final Compressor comp;
   private final DoubleSolenoid pusher;
   private final CANSparkMax spinner;
-
+  private boolean cone;
 
   /**
    * Gripping Class Constructor
@@ -32,6 +32,8 @@ public class PinchersofPower extends SubsystemBase
     comp = new Compressor(1, PneumaticsModuleType.CTREPCM);
     pusher = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 0);
     spinner = new CANSparkMax(25, MotorType.kBrushless);
+    cone = false;
+    Shuffleboard.getTab("Telemetry").add("spin speed", spinner.get());
   }
 
   //Close Gripper
@@ -70,23 +72,34 @@ public class PinchersofPower extends SubsystemBase
     comp.disable();
   }
 
-  public void intake(Boolean cone) {
-    if((pusher.get() == Value.kForward) && (cone != true)) {
+  public void intake() {
+    if((pusher.get() == Value.kForward)) {
       reverse();
     }
+    spinin();
+    Shuffleboard.update();
     if((pusher.get() != Value.kForward) && (cone == true)) {
       forward();
     }
-    spinin();
   }
 
   public void outtake() {
-    spinout();
+    if(cone != true) {
+      spinout();
+    }
+    Shuffleboard.update();
+    if((cone == true) && (pusher.get() == Value.kForward)) {
+      pusher.set(Value.kReverse);
+    }
   }
 
   public void notake() {
     spinoff();
     off();
+  }
+
+  public void setMode(boolean cone) {
+    this.cone = cone;
   }
 
   @Override

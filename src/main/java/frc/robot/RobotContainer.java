@@ -26,11 +26,11 @@ public class RobotContainer {
 
     driver = new CommandXboxController(0);
     copilot = new CommandGenericHID(1);
-    
-    m_gyro.zeroYaw();
-    
-    configureButtonBindings();
 
+    m_gyro.zeroYaw();
+//    m_claw.setMode(true);
+
+    configureButtonBindings();
     m_swerve.setDefaultCommand(new DriveCommand(m_swerve, driver));
   }
 
@@ -38,7 +38,7 @@ public class RobotContainer {
     driver.a().onTrue(new InstantCommand(m_swerve::toggleRobotOrient, m_swerve));
     driver.b().onTrue(new InstantCommand(m_swerve::zeroGyro, m_swerve));
 
-    driver.rightBumper().onTrue(new InstantCommand(() -> m_claw.intake(true), m_claw));
+    driver.rightBumper().onTrue(new InstantCommand(() -> m_claw.intake(), m_claw));
     driver.rightBumper().onFalse(new InstantCommand(() -> m_claw.notake(), m_claw));
 
     driver.leftBumper().onTrue(new InstantCommand(() -> m_claw.outtake(), m_claw));

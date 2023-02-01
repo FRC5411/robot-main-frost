@@ -18,6 +18,16 @@
       }
     },
     "Solenoids": {
+      "0": {
+        "header": {
+          "open": true
+        }
+      },
+      "1": {
+        "header": {
+          "open": true
+        }
+      },
       "window": {
         "visible": true
       }
@@ -29,14 +39,22 @@
     }
   },
   "NetworkTables": {
+    "Retained Values": {
+      "open": false
+    },
     "transitory": {
+      "Shuffleboard": {
+        "Telemetry": {
+          "open": true
+        },
+        "open": true
+      },
       "telemetry": {
         "drivetrain": {
           "kinematics": {
             "field": {
               "open": true
-            },
-            "open": true
+            }
           },
           "modules": {
             "BL": {
@@ -47,24 +65,20 @@
                 "open": true
               },
               "open": true
-            },
-            "open": true
+            }
           },
           "odometry": {
             "field": {
               "open": true
-            },
-            "open": true
+            }
           },
           "open": true
         },
         "general": {
           "PDH": {
             "open": true
-          },
-          "open": true
-        },
-        "open": true
+          }
+        }
       }
     }
   }
