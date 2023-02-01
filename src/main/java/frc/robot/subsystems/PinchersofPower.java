@@ -23,7 +23,7 @@ public class PinchersofPower extends SubsystemBase
   private final Compressor comp;
   private final DoubleSolenoid pusher;
   private final CANSparkMax spinner;
-  private boolean cone;
+  private boolean m_cone;
 
   /**
    * Gripping Class Constructor
@@ -32,7 +32,7 @@ public class PinchersofPower extends SubsystemBase
     comp = new Compressor(1, PneumaticsModuleType.CTREPCM);
     pusher = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 0);
     spinner = new CANSparkMax(25, MotorType.kBrushless);
-    cone = false;
+    m_cone = false;
     Shuffleboard.getTab("Telemetry").add("spin speed", spinner.get());
   }
 
@@ -78,17 +78,17 @@ public class PinchersofPower extends SubsystemBase
     }
     spinin();
     Shuffleboard.update();
-    if((pusher.get() != Value.kForward) && (cone == true)) {
+    if((pusher.get() != Value.kForward) && (m_cone == true)) {
       forward();
     }
   }
 
   public void outtake() {
-    if(cone != true) {
+    if(m_cone != true) {
       spinout();
     }
     Shuffleboard.update();
-    if((cone == true) && (pusher.get() == Value.kForward)) {
+    if((m_cone == true) && (pusher.get() == Value.kForward)) {
       pusher.set(Value.kReverse);
     }
   }
@@ -98,8 +98,13 @@ public class PinchersofPower extends SubsystemBase
     off();
   }
 
-  public void setMode(boolean cone) {
-    this.cone = cone;
+  public void setMode(String mode) {
+    if(mode == "cone") {
+      m_cone = true;
+    }
+    if(mode == "cube") {
+      m_cone = false;
+    }
   }
 
   @Override
