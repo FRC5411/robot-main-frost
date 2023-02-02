@@ -94,8 +94,8 @@ public class Drivetrain extends SubsystemBase
   private boolean isRobotOriented = true;
 
   // for calculating rotation vector
-  private static final double ROTATION_Y = Math.sin(Math.atan2(ROBOT_WIDTH, ROBOT_WIDTH));
-  private static final double ROTATION_X = Math.cos(Math.atan2(ROBOT_WIDTH, ROBOT_WIDTH));
+/*  private static final double ROTATION_Y = Math.sin(Math.atan2(ROBOT_WIDTH, ROBOT_WIDTH));
+  private static final double ROTATION_X = Math.cos(Math.atan2(ROBOT_WIDTH, ROBOT_WIDTH));*/
   
   private static final StatorCurrentLimitConfiguration DRIVE_CURRENT_LIMIT = new StatorCurrentLimitConfiguration(true, 80, 80, 0);
   private static final StatorCurrentLimitConfiguration AZIMUTH_CURRENT_LIMIT = new StatorCurrentLimitConfiguration(true, 20, 20, 0);
@@ -256,12 +256,12 @@ public class Drivetrain extends SubsystemBase
     modules = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
 
     // if joystick is idle, lock wheels to X formation to avoid pushing
-    if (LX == 0 && LY == 0 && RX == 0 && false) {
+/*    if (LX == 0 && LY == 0 && RX == 0 && false) {
       modules[0].angle = new Rotation2d((Math.atan2( ROTATION_Y,  ROTATION_X)) % 360);
       modules[1].angle = new Rotation2d((Math.atan2( ROTATION_Y, -ROTATION_X)) % 360);
       modules[2].angle = new Rotation2d((Math.atan2(-ROTATION_Y,  ROTATION_X)) % 360);
       modules[3].angle = new Rotation2d((Math.atan2(-ROTATION_Y, -ROTATION_X)) % 360);
-    } else if ( LX == 0 && LY == 0 && RX == 0 ) {
+    } else */if ( LX == 0 && LY == 0 && RX == 0 ) {
       FL_Azimuth.set(ControlMode.PercentOutput, 0);
       FR_Azimuth.set(ControlMode.PercentOutput, 0);
       BL_Azimuth.set(ControlMode.PercentOutput, 0);
