@@ -23,8 +23,6 @@ public class PinchersofPower extends SubsystemBase
     pusher = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 0);
     spinner = new CANSparkMax(25, MotorType.kBrushless);
     m_cone = false;
-    Telemetry.setValue("POP/speed/speed", spinner.get());
-    Telemetry.setValue("POP/pneumatics/value", pusher.get());
   }
 
   //Close Gripper
@@ -109,5 +107,11 @@ public class PinchersofPower extends SubsystemBase
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+    Telemetry.setValue("POP/motor/speed", spinner.get());
+    Telemetry.setValue("POP/motor/temp", spinner.getMotorTemperature());
+    Telemetry.setValue("POP/motor/voltage", spinner.getAppliedOutput());
+    Telemetry.setValue("POP/motor/statorcurrent", spinner.getOutputCurrent());
+    Telemetry.setValue("POP/pneumatics/value", pusher.get());
+  }
 }
