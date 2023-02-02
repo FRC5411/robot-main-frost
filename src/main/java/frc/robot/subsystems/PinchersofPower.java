@@ -104,6 +104,10 @@ public class PinchersofPower extends SubsystemBase
     return new InstantCommand(() -> outtake(), Claw);
   }
 
+  public Command Notake(PinchersofPower Claw) {
+    return new InstantCommand(() -> notake(), Claw);
+  }
+
   @Override
   public void periodic() {}
 }
