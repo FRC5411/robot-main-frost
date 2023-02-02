@@ -25,6 +25,10 @@ public class Pigeon extends SubsystemBase
   private double roll = 0;
   private double[] ypr = new double[3];
 
+  public Pigeon(int ID) {
+    M_Gyro = new Pigeon2(ID);
+  }
+
   /**
    * Return the M_Gyro
    */

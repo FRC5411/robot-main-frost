@@ -1,7 +1,4 @@
 package frc.robot;
-
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -26,14 +23,11 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandGenericHID copilot = new CommandGenericHID(1);
 
-  private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
+//  private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     m_claw = new PinchersofPower();
-
-    driver = new CommandXboxController(0);
-    copilot = new CommandGenericHID(1);
 
     m_gyro.zeroYaw();
 
@@ -47,13 +41,9 @@ public class RobotContainer {
     driver.b().onTrue(new InstantCommand(m_swerve::zeroGyro, m_swerve));
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
+/*
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
     return m_autoCommand;
-  }
+  } */
 }

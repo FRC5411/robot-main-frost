@@ -5,8 +5,9 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.Telemetry;
 import frc.robot.Constants.POP;
 
@@ -67,7 +68,6 @@ public class PinchersofPower extends SubsystemBase
       reverse();
     }
     spinin();
-    Shuffleboard.update();
     if((pusher.get() != Value.kForward) && (m_cone == true)) {
       forward();
     }
@@ -77,7 +77,6 @@ public class PinchersofPower extends SubsystemBase
     if(m_cone != true) {
       spinout();
     }
-    Shuffleboard.update();
     if((m_cone == true) && (pusher.get() == Value.kForward)) {
       pusher.set(Value.kReverse);
     }
@@ -95,6 +94,14 @@ public class PinchersofPower extends SubsystemBase
     if(mode == "cube") {
       m_cone = false;
     }
+  }
+
+  public Command Intake(PinchersofPower Claw) {
+    return new InstantCommand(() -> intake(), Claw);
+  }
+
+  public Command Outtake(PinchersofPower Claw) {
+    return new InstantCommand(() -> outtake(), Claw);
   }
 
   @Override
