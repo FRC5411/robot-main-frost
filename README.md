@@ -103,5 +103,5 @@ statorCurrent<br>
 ###### DSrightSpeed
 #### odometry/
 ##### field/
-###### DSawaySpeed
-###### DSrightSpeed
+###### DSawayPosition
+###### DSrightPosition

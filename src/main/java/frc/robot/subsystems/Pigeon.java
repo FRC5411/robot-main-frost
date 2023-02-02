@@ -20,10 +20,10 @@ public class Pigeon extends SubsystemBase
   private double Roll = 0;
   private double[] YPR;
 
-  /**
-   * Pigeon Class Constructor
-   */
-  public Pigeon (int CAN_ID) {M_Gyro = new Pigeon2(CAN_ID);}
+  private double yaw = 0;
+  private double pitch = 0;
+  private double roll = 0;
+  private double[] ypr = new double[3];
 
   /**
    * Return the M_Gyro

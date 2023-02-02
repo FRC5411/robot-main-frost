@@ -256,11 +256,21 @@ public class Drivetrain extends SubsystemBase
     modules = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
 
     // if joystick is idle, lock wheels to X formation to avoid pushing
-    if (LX == 0 && LY == 0 && RX == 0) {
+    if (LX == 0 && LY == 0 && RX == 0 && false) {
       modules[0].angle = new Rotation2d((Math.atan2( ROTATION_Y,  ROTATION_X)) % 360);
       modules[1].angle = new Rotation2d((Math.atan2( ROTATION_Y, -ROTATION_X)) % 360);
       modules[2].angle = new Rotation2d((Math.atan2(-ROTATION_Y,  ROTATION_X)) % 360);
       modules[3].angle = new Rotation2d((Math.atan2(-ROTATION_Y, -ROTATION_X)) % 360);
+    } else if ( LX == 0 && LY == 0 && RX == 0 ) {
+      FL_Azimuth.set(ControlMode.PercentOutput, 0);
+      FR_Azimuth.set(ControlMode.PercentOutput, 0);
+      BL_Azimuth.set(ControlMode.PercentOutput, 0);
+      BR_Azimuth.set(ControlMode.PercentOutput, 0);
+      FL_Drive.set(ControlMode.PercentOutput, 0);
+      FR_Drive.set(ControlMode.PercentOutput, 0);
+      BL_Drive.set(ControlMode.PercentOutput, 0);
+      BR_Drive.set(ControlMode.PercentOutput, 0);
+      return;
     }
 
     driveFromModuleStates(modules);
@@ -372,9 +382,9 @@ public class Drivetrain extends SubsystemBase
    * @return the corrected target position of the motor
   */
   private double optimizeAzimuthPath (double target, double actual) {
-    if (Math.min(Math.min(Math.abs(target - FL_Actual_Position), Math.abs((target + 360) - actual)), Math.abs((target - 360) - actual)) == Math.abs((target + 360) - actual))
+    if (Math.min(Math.min(Math.abs(target - actual), Math.abs((target + 360) - actual)), Math.abs((target - 360) - actual)) == Math.abs((target + 360) - actual))
       target += 360;
-    if (Math.min(Math.min(Math.abs(target - FL_Actual_Position), Math.abs((target + 360) - actual)), Math.abs((target - 360) - actual)) == Math.abs((target - 360) - actual))
+    if (Math.min(Math.min(Math.abs(target - actual), Math.abs((target + 360) - actual)), Math.abs((target - 360) - actual)) == Math.abs((target - 360) - actual))
       target -= 360;
     return target;
   }
