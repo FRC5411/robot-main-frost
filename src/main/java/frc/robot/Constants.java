@@ -72,4 +72,11 @@ public final class Constants {
             public static final double R = 0;
             public static final double SPEED = 0.5;
         }
+
+        public class LED {
+            public static final double Yellow = 0;
+            public static final double Purple = 0;
+            public static final double REd = 0;
+            public static final double GREEN = 0;
+        }
 }
