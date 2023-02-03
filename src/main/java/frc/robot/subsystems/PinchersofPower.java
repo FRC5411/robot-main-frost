@@ -16,12 +16,15 @@ public class PinchersofPower extends SubsystemBase
   private final Compressor comp;
   private final DoubleSolenoid pusher;
   private final CANSparkMax spinner;
+  private final CANSparkMax spinner2;
   private boolean m_cone;
 
   public PinchersofPower() {
     comp = new Compressor(1, PneumaticsModuleType.CTREPCM);
     pusher = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 0);
     spinner = new CANSparkMax(25, MotorType.kBrushless);
+    spinner2 = new CANSparkMax(25, MotorType.kBrushless);
+    spinner2.follow(spinner);
     m_cone = false;
   }
 
