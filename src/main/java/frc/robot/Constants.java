@@ -48,14 +48,23 @@ public final class Constants {
         public static final double DRIVE_kF = 0.028998;
     }
         public class ARM {        
-            public static final double LOW_DIST = 0;
+           /* public static final double LOW_DIST = 0;
             public static final double LOW_X = 0;
             public static final double LOW_Y = 0;    
             public static final double HIGH_DIST = 0;
             public static final double HIGH_X = 0;
-            public static final double HIGH_Y = 0;        
+            public static final double HIGH_Y = 0;*/        
             public static final double BISCEP_LENGTH = 20;        
-            public static final double ELBOW_LENGTH = 30;   
+            public static final double ELBOW_LENGTH = 30;
+            public static final double LOW_ARM_ANG = 152.8;
+            public static final double LOW_ELBOW_ANG = 168.9;
+            public static final double LOW_CLAW_ANG = -14.5;
+            public static final double HIGH_ARM_ANG = 83;
+            public static final double HIGH_ELBOW_ANG = 168.9;
+            public static final double HIGH_CLAW_ANG = -142.5;
+            public static final double IDLE_ARM_ANG = 63.8;
+            public static final double IDLE_ELBOW_ANG = -38.4;
+            public static final double IDLE_CLAW_ANG = 96.9;
     }
 
         public class POP {
