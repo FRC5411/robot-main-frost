@@ -115,6 +115,10 @@ public class PinchersofPower extends SubsystemBase
     Telemetry.setValue("POP/motor/temp", spinner.getMotorTemperature());
     Telemetry.setValue("POP/motor/voltage", spinner.getAppliedOutput());
     Telemetry.setValue("POP/motor/statorcurrent", spinner.getOutputCurrent());
+    Telemetry.setValue("POP/motor/speed2", spinner2.get());
+    Telemetry.setValue("POP/motor/temp2", spinner2.getMotorTemperature());
+    Telemetry.setValue("POP/motor/voltage2", spinner2.getAppliedOutput());
+    Telemetry.setValue("POP/motor/statorcurrent2", spinner2.getOutputCurrent());
     Telemetry.setValue("POP/pneumatics/value", pusher.get());
   }
 }
