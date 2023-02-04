@@ -74,9 +74,10 @@ public final class Constants {
         }
 
         public class LED {
-            public static final double Yellow = 0;
-            public static final double Purple = 0;
-            public static final double REd = 0;
-            public static final double GREEN = 0;
+            public static final double YELLOW = 0.69;
+            public static final double PURPLE = 0.91;
+            public static final double RED = 0.61;
+            public static final double GREEN = 0.77;
+            public static final double RAINBOW = -0.99;
         }
 }

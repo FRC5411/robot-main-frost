@@ -49,34 +49,46 @@ public class Arm extends SubsystemBase
         Claw_PID = new PIDController(0, 0, 0);
     }
 
-    public void setArm(double angle) {
+    public void setArm(double speed) {
+        M_Biscep.set(speed);  
+    }
+
+    public void setElbows(double speed) {    
+        M_Elbow.set(speed);  
+    }
+
+    public void setClaws(double speed) {    
+        M_Claw.set(speed);  
+    }
+
+    public void posArm(double angle) {
         M_Biscep.set(Biscep_PID.calculate(Biscep_Encoder.getPosition(), angle));  
     }
 
-    public void setElbows(double angle) {    
+    public void posElbows(double angle) {    
         M_Elbow.set(Elbow_PID.calculate(Elbow_Encoder.getPosition(), angle));  
     }
 
-    public void setClaws(double angle) {    
+    public void posClaws(double angle) {    
         M_Claw.set(Claw_PID.calculate(Elbow_Encoder.getPosition(), angle));  
     }
 
     public void lowArmScore() {
-        setArm(ARM.LOW_ARM_ANG);
-        setElbows(ARM.LOW_ELBOW_ANG);  
-        setClaws(ARM.LOW_CLAW_ANG);
+        posArm(ARM.LOW_ARM_ANG);
+        posElbows(ARM.LOW_ELBOW_ANG);  
+        posClaws(ARM.LOW_CLAW_ANG);
     }
 
     public void highArmScore() {
-        setArm(ARM.HIGH_ARM_ANG);
-        setElbows(ARM.HIGH_ELBOW_ANG);  
-        setClaws(ARM.HIGH_CLAW_ANG);
+        posArm(ARM.HIGH_ARM_ANG);
+        posElbows(ARM.HIGH_ELBOW_ANG);  
+        posClaws(ARM.HIGH_CLAW_ANG);
     }
     
     public void idleArmScore() {
-        setArm(ARM.IDLE_ARM_ANG);
-        setElbows(ARM.IDLE_ELBOW_ANG);  
-        setClaws(ARM.IDLE_CLAW_ANG);
+        posArm(ARM.IDLE_ARM_ANG);
+        posElbows(ARM.IDLE_ELBOW_ANG);  
+        posClaws(ARM.IDLE_CLAW_ANG);
     }
 
     @Override  public void periodic() {
