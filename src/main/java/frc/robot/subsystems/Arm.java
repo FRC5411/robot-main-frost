@@ -41,8 +41,8 @@ public class Arm extends SubsystemBase
         Biscep_Encoder = M_Biscep.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
         Elbow_Encoder = M_Elbow.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
 
-        Biscep_Encoder.setPositionConversionFactor(2*Math.PI);
-        Elbow_Encoder.setPositionConversionFactor(2*Math.PI);
+        Biscep_Encoder.setPositionConversionFactor(360);
+        Elbow_Encoder.setPositionConversionFactor(360);
 
         Biscep_PID = new PIDController(0, 0, 0);    
         Elbow_PID = new PIDController(0, 0, 0);

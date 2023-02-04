@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.Telemetry;
 import frc.robot.Constants.*;
 
 public class LEDs extends SubsystemBase {
@@ -49,6 +50,7 @@ public class LEDs extends SubsystemBase {
       LEDS.set(LED.RAINBOW);
       Mode = "Neither";
     }
+    LEDS.set(0);
   }
 
   @Override
@@ -56,6 +58,7 @@ public class LEDs extends SubsystemBase {
     detector();
     state();
     succeed();
+    Telemetry.setValue("LEDS/motor/value", LEDS.get());
   }
 
   @Override
