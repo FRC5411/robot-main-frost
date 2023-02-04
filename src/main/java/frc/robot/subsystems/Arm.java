@@ -3,13 +3,14 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxAbsoluteEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.*;
 import frc.lib.Telemetry;
-
-public class Arm extends SubsystemBase 
-{
+public class Arm extends SubsystemBase {
     private final CANSparkMax M_Biscep;
     private final CANSparkMax M_Biscep2;
     private final CANSparkMax M_Elbow;
@@ -17,10 +18,17 @@ public class Arm extends SubsystemBase
     private final CANSparkMax M_Claw;
     private final CANSparkMax M_Claw2;
     private final SparkMaxAbsoluteEncoder Biscep_Encoder;  
-    private final SparkMaxAbsoluteEncoder Elbow_Encoder;  
-    private final PIDController Biscep_PID;  
-    private final PIDController Elbow_PID;
-    private final PIDController Claw_PID;
+    private final SparkMaxAbsoluteEncoder Elbow_Encoder;
+    private final SparkMaxAbsoluteEncoder Claw_Encoder;
+    private final ProfiledPIDController Biscep_PID;  
+    private final ProfiledPIDController Elbow_PID;
+    private final ProfiledPIDController Claw_PID;
+    private final ArmFeedforward FBiscep;
+    private final ArmFeedforward FElbow;
+    private final ArmFeedforward FClaw;
+    private final TrapezoidProfile.Constraints BiscepProfile;
+    private final TrapezoidProfile.Constraints ElbowProfile;
+    private final TrapezoidProfile.Constraints ClawProfile;
 
     public Arm() {    
         //Motors
@@ -40,13 +48,23 @@ public class Arm extends SubsystemBase
 
         Biscep_Encoder = M_Biscep.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
         Elbow_Encoder = M_Elbow.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
+        Claw_Encoder = M_Claw.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
 
         Biscep_Encoder.setPositionConversionFactor(360);
         Elbow_Encoder.setPositionConversionFactor(360);
+        Claw_Encoder.setPositionConversionFactor(360);
 
-        Biscep_PID = new PIDController(0, 0, 0);    
-        Elbow_PID = new PIDController(0, 0, 0);
-        Claw_PID = new PIDController(0, 0, 0);
+        BiscepProfile = new TrapezoidProfile.Constraints(0, 0);
+        ElbowProfile = new TrapezoidProfile.Constraints(0, 0);
+        ClawProfile = new TrapezoidProfile.Constraints(0, 0);
+
+        FBiscep = new ArmFeedforward(0, 0, 0, 0);
+        FElbow = new ArmFeedforward(0, 0, 0, 0);
+        FClaw = new ArmFeedforward(0, 0, 0, 0);
+
+        Biscep_PID = new ProfiledPIDController(0, 0, 0, BiscepProfile);    
+        Elbow_PID = new ProfiledPIDController(0, 0, 0, ElbowProfile);
+        Claw_PID = new ProfiledPIDController(0, 0, 0, ClawProfile);
     }
 
     public void setArm(double speed) {
@@ -62,15 +80,21 @@ public class Arm extends SubsystemBase
     }
 
     public void posArm(double angle) {
-        M_Biscep.set(Biscep_PID.calculate(Biscep_Encoder.getPosition(), angle));  
+        double FF = FBiscep.calculate(Biscep_Encoder.getPosition(), Biscep_Encoder.getVelocity());
+        double PID = Biscep_PID.calculate(Biscep_Encoder.getPosition(), angle);
+        M_Biscep.set(PID + FF);  
     }
 
     public void posElbows(double angle) {    
-        M_Elbow.set(Elbow_PID.calculate(Elbow_Encoder.getPosition(), angle));  
+        double FF = FElbow.calculate(Elbow_Encoder.getPosition(), Elbow_Encoder.getVelocity());
+        double PID = Elbow_PID.calculate(Elbow_Encoder.getPosition(), angle);
+        M_Elbow.set(PID + FF);  
     }
 
     public void posClaws(double angle) {    
-        M_Claw.set(Claw_PID.calculate(Elbow_Encoder.getPosition(), angle));  
+        double FF = FClaw.calculate(Claw_Encoder.getPosition(), Claw_Encoder.getVelocity());
+        double PID = Claw_PID.calculate(Claw_Encoder.getPosition(), angle);
+        M_Claw.set(PID + FF);  
     }
 
     public void lowArmScore() {
