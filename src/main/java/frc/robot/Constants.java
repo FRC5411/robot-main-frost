@@ -1,17 +1,4 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
-
-/**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
- * globally (i.e. public static). Do not put anything functional in this class.
- *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
- */
 public final class Constants {
     public class CAN {
         //CAN Bus IDs
@@ -60,9 +47,34 @@ public final class Constants {
         public static final double DRIVE_kP = 0.044057;
         public static final double DRIVE_kF = 0.028998;
     }
-
-    public class LL {
-        public static final double SLOPE = 0;
-        public static final double YINT = 0;
+        public class ARM {        
+           /* public static final double LOW_DIST = 0;
+            public static final double LOW_X = 0;
+            public static final double LOW_Y = 0;    
+            public static final double HIGH_DIST = 0;
+            public static final double HIGH_X = 0;
+            public static final double HIGH_Y = 0;*/        
+            public static final double BISCEP_LENGTH = 20;        
+            public static final double ELBOW_LENGTH = 30;
+            public static final double LOW_ARM_ANG = 152.8;
+            public static final double LOW_ELBOW_ANG = 168.9;
+            public static final double LOW_CLAW_ANG = -14.5;
+            public static final double HIGH_ARM_ANG = 83;
+            public static final double HIGH_ELBOW_ANG = 168.9;
+            public static final double HIGH_CLAW_ANG = -142.5;
+            public static final double IDLE_ARM_ANG = 63.8;
+            public static final double IDLE_ELBOW_ANG = -38.4;
+            public static final double IDLE_CLAW_ANG = 96.9;
     }
+
+        public class POP {
+            public static final double F = 0;
+            public static final double R = 0;
+            public static final double SPEED = 0.5;
+        }
+
+        public class LL {
+            public static final double SLOPE = 0;
+            public static final double YINT = 0;
+        }
 }
