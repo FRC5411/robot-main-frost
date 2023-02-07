@@ -7,6 +7,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.triangle;
 import frc.robot.Constants.*;
 import frc.lib.Telemetry;
 public class Arm extends SubsystemBase {
@@ -66,6 +67,14 @@ public class Arm extends SubsystemBase {
         Claw_PID = new ProfiledPIDController(0, 0, 0, ClawProfile);
     }
 
+    public void movetopoint(double x, double y, double claw) {
+        triangle Triangle = new triangle(x, y, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+        double angle1 = Triangle.getangleA() + (90 - Math.atan2(y, x));
+        posArm(angle1);
+        posElbows(angle2);
+        posClaws(claw);
+    }
+
     public void setArm(double speed) {
         M_Biscep.set(speed);  
     }
@@ -79,21 +88,15 @@ public class Arm extends SubsystemBase {
     }
 
     public void posArm(double angle) {
-        double FF = FBiscep.calculate(Biscep_Encoder.getPosition(), Biscep_Encoder.getVelocity());
-        double PID = Biscep_PID.calculate(Biscep_Encoder.getPosition(), angle);
-        M_Biscep.set(PID + FF);  
+        M_Biscep.set(Biscep_PID.calculate(Biscep_Encoder.getPosition(), angle) + FBiscep.calculate(Biscep_Encoder.getPosition(), Biscep_Encoder.getVelocity()));  
     }
 
-    public void posElbows(double angle) {    
-        double FF = FElbow.calculate(Elbow_Encoder.getPosition(), Elbow_Encoder.getVelocity());
-        double PID = Elbow_PID.calculate(Elbow_Encoder.getPosition(), angle);
-        M_Elbow.set(PID + FF);  
+    public void posElbows(double angle) {
+        M_Elbow.set(Elbow_PID.calculate(Elbow_Encoder.getPosition(), angle) + FElbow.calculate(Elbow_Encoder.getPosition(), Elbow_Encoder.getVelocity()));  
     }
 
-    public void posClaws(double angle) {    
-        double FF = FClaw.calculate(Claw_Encoder.getPosition(), Claw_Encoder.getVelocity());
-        double PID = Claw_PID.calculate(Claw_Encoder.getPosition(), angle);
-        M_Claw.set(PID + FF);  
+    public void posClaws(double angle) {
+        M_Claw.set(Claw_PID.calculate(Claw_Encoder.getPosition(), angle) + FClaw.calculate(Claw_Encoder.getPosition(), Claw_Encoder.getVelocity()));  
     }
 
     public void lowArmScore() {
