@@ -42,6 +42,9 @@ public class Arm extends SubsystemBase {
         M_Biscep.setIdleMode(IdleMode.kBrake);
         M_Elbow.setIdleMode(IdleMode.kBrake);
         M_Claw.setIdleMode(IdleMode.kBrake);
+        M_Biscep2.setIdleMode(IdleMode.kBrake);
+        M_Elbow2.setIdleMode(IdleMode.kBrake);
+        M_Claw2.setIdleMode(IdleMode.kBrake);
         M_Biscep2.follow(M_Biscep);
         M_Claw2.follow(M_Claw);
         M_Elbow2.follow(M_Elbow);
@@ -69,7 +72,7 @@ public class Arm extends SubsystemBase {
 
     public void movetopoint(double x, double y, double claw) {
         triangle Triangle = new triangle(x, y, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
-        double angle1 = Triangle.getangleA() + (90 - Math.atan2(y, x));
+        double angle1 = Triangle.getangleA() + (90 - Math.atan2(x, y));
         double angle2 = Triangle.getangleB();
         posArm(angle1);
         posElbows(angle2);
