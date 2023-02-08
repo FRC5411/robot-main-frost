@@ -35,7 +35,6 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
-
     driver.a().onTrue(new InstantCommand(m_swerve::toggleRobotOrient, m_swerve));
     driver.b().onTrue(new InstantCommand(m_swerve::zeroGyro, m_swerve));
   }
