@@ -29,9 +29,11 @@ public class LEDs extends SubsystemBase {
   public void detector() {
     if(detect == 1) {
       LEDS.set(LED.GREEN);
+      Telemetry.setValue("LEDS/Blinkin/color", "GREEN");
     }
     if(detect == -1) {
       LEDS.set(LED.RED);
+      Telemetry.setValue("LEDS/Blinkin/color", "RED");
     }
     detect = 0;
   }
@@ -39,18 +41,22 @@ public class LEDs extends SubsystemBase {
   public void state() {
     if(Mode == "Cone") {
       LEDS.set(LED.YELLOW);
+      Telemetry.setValue("LEDS/Blinkin/color", "YELLOW");
     }
     if(Mode == "Cube") {
       LEDS.set(LED.PURPLE);
+      Telemetry.setValue("LEDS/Blinkin/color", "PURPLE");
     }
   }
 
   public void succeed() {
     if(success == true) {
       LEDS.set(LED.RAINBOW);
+      Telemetry.setValue("LEDS/Blinkin/color", "RAINBOW");
       Mode = "Neither";
     }
     LEDS.set(0);
+    Telemetry.setValue("LEDS/Blinkin/color", "NONE");
   }
 
   @Override
@@ -58,7 +64,7 @@ public class LEDs extends SubsystemBase {
     detector();
     state();
     succeed();
-    Telemetry.setValue("LEDS/motor/value", LEDS.get());
+    Telemetry.setValue("LEDS/Blinkin/value", LEDS.get());
   }
 
   @Override
