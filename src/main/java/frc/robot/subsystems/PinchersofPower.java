@@ -60,7 +60,6 @@ public class PinchersofPower extends SubsystemBase  {
 
     spinner.burnFlash();
     spinner2.burnFlash();
-
   }
 
   public boolean getPiece(){

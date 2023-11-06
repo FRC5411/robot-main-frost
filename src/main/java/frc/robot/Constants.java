@@ -1,23 +1,14 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import frc.lib.ArmPosition;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
-/**
- * The Constants class provides a convenient place for teams to hold robot-wide
- * numerical or boolean
- * constants. This class should not be used for any other purpose. All constants
- * should be declared
- * globally (i.e. public static). Do not put anything functional in this class.
- *
- * <p>
- * It is advised to statically import this class (or one of its inner classes)
- * wherever the
- * constants are needed, to reduce verbosity.
- */
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.geometry.Translation2d;
+
+import edu.wpi.first.math.controller.PIDController;
+
 public final class Constants {
     public class PWM {
         public static final int BLINKIN_ID = 0;
@@ -62,7 +53,7 @@ public final class Constants {
         public static final int GRIP_RIGHT_ID = 42;
     }
 
-    public class DRIVETRAIN {
+    public static class DRIVETRAIN {
         // robot width (meters)
         public static final double ROBOT_WIDTH_METERS = 0.6858;
         // wheel diameter (meters)
@@ -71,6 +62,12 @@ public final class Constants {
         
         public static final double DRIVE_GEAR_RATIO = 6.75;
         public static final double AZIMUTH_GEAR_RATIO = 12.8;
+
+        public static final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+            new Translation2d(  ROBOT_WIDTH_METERS / 2,  ROBOT_WIDTH_METERS / 2 ),
+            new Translation2d(  ROBOT_WIDTH_METERS / 2, -ROBOT_WIDTH_METERS / 2 ),
+            new Translation2d( -ROBOT_WIDTH_METERS / 2,  ROBOT_WIDTH_METERS / 2 ),
+            new Translation2d( -ROBOT_WIDTH_METERS / 2, -ROBOT_WIDTH_METERS / 2 ) );
 
         // encoder offsets (degrees)
         public static final double FL_ECODER_OFFSET = -313.506 + 0.5;
@@ -90,9 +87,19 @@ public final class Constants {
                                                        // rylan: 0.65
         public static final double AZIMUTH_kD = 0.000265;// 0.000275;//0.0003;//0.0004;//0.0005;//0.0006;//0.0006125;//0.0006125//0.000625//0.00065//0.0006;//0.00055//0.0005;//0.002//0.001//0.00075
                                                          // //0.0005;//0.00025
-        public static final double AZIMUTH_kF = 0.04;// 0.05
+        public static final double AZIMUTH_kF = 0.04;
+        
+        public static final double FL_kF = 0.047;
+        public static final double FR_kF = 0.04; // 0.05
+        public static final double BL_kF = 0.04; // 0.05
+        public static final double BR_kF = 0.05;
+
         public static final double AZIMUTH_DEADBAND = 0.06;// 0.1;//0.06;//0.075over slop;//0.1Over slop//0.05 under
                                                            // slop
+        public static final PIDController FL_PID = new PIDController(0.0094, 0, 0.000277); // 0.105
+        public static final PIDController FR_PID = new PIDController(0.0095, 0, 0.000270);
+        public static final PIDController BL_PID = new PIDController(0.0096, 0, 0.000270);
+        public static final PIDController BR_PID = new PIDController(0.0093, 0, 0.000270);
 
         // calculated via JVN calculator
         public static final double DRIVE_kP = 0.088062; // 0.04;//0.07;//0.06; //0.044057
@@ -106,6 +113,37 @@ public final class Constants {
 
         public static final double AUTO_BALANCE_Kp = 0.1;
         public static final double AUTO_BALANCE_Kd = 0;
+
+        public static final double _translationKp = 2.40;// 2.35//1.8;//3.25;//2.75;//2.5;//2.1;//2;//0.018;//0.03;//0.004 0.001
+        public static final double _translationKi = 0;
+        public static final double _translationKd = 0;
+        public static final double _rotationKp = 1.83;//1.83;// 2.5//12.5;//15;//0.00005
+        public static final double _rotationKi = 0;
+        public static final double _rotationKd = 0.085; // 0.1
+      
+        public static final double _alignXKp = 3.0;//5.5;//5; //5.5;
+        public static final double _alignXKi = 0.0;//0.1;//0.;
+        public static final double _alignXKd = 0.03;//0.05;
+      
+        public static final double _alignYKp = 2.5;//2.2;//3.1; //5.5;
+        public static final double _alignYKi = 0.00; //0.01;//0.;
+        public static final double _alignYKd = 0.02; //0.03;
+      
+        public static final double _alignRotationKp = 6.2;//2.5;
+        public static final double _alignRotationKi = 0.0;// 0.03; //.42;
+        public static final double _alignRotationKd = 0;//.0;
+
+        public static final Constraints _YConstraints = new Constraints(4, 6);
+        public static final Constraints _XConstraints = new Constraints(3, 5);
+        public static final Constraints _rotConstraints = new Constraints(360, 240);
+
+        public static final HolonomicConstraints _holonomicConstraints = 
+          new HolonomicConstraints(_XConstraints, _YConstraints, _rotConstraints);
+
+        public static final double downChargeLine = 1.0;
+        public static final double upChargeLine = 4.5;
+        public static final double rightChargeLine = 14.05;
+        public static final double leftChargeLine = 11.2;
     }
 
     public class LL {

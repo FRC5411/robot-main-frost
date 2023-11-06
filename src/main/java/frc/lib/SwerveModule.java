@@ -20,13 +20,24 @@ public class SwerveModule {
     public String key;
 
     public SwerveModule(TalonFX driveMotor, TalonFX angleMotor, CANCoder angleEncoder, 
-    PIDController angleController, double kF, String key) {
+                        PIDController angleController, double kF, String key) {
         this.driveMotor = driveMotor;
         this.angleMotor = angleMotor;
         this.angleEncoder = angleEncoder;
         this.angleController = angleController;
         this.kF = kF;
         this.key = key;
+    }
+
+    public SwerveModule(int driveID, int anlgeID, int cancoderID, PIDController angleController, 
+                        double kF, double offset, String key) {
+        this(new TalonFX(driveID), new TalonFX(anlgeID), new CANCoder(cancoderID), angleController, kF, key);
+        FrostConfigs.configPID(angleController);
+        FrostConfigs.configPosition(angleEncoder, offset);
+        FrostConfigs.configDrive(this.driveMotor);
+        FrostConfigs.configAzimuth(
+            this.angleMotor, angleEncoder, 
+            angleController.getP(), angleController.getD(), kF);
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
