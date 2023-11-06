@@ -56,7 +56,7 @@ public class moveToPosition {
                 controller.reset( currentPose.get(), currentChassisSpeeds.get() );
                 controller.setGoal(targetPose, targetChassisSpeeds);
                 
-                requirements.field2d.getObject( "Goal" ).setPose( controller.getPositionGoal() );
+                DRIVETRAIN.field2d.getObject( "Goal" ).setPose( controller.getPositionGoal() );
             },
             () -> {
                 controller.xIZone(xKi, controller.getPoseError().getX(), -0.5, 0.5);
@@ -67,7 +67,7 @@ public class moveToPosition {
                     SimpleUtils.discretize( 
                         controller.calculateWithFF( currentPose.get() ) ) );
 
-                requirements.field2d.getObject( "Setpoint" ).setPose( controller.getPositionSetpoint() );
+                DRIVETRAIN.field2d.getObject( "Setpoint" ).setPose( controller.getPositionSetpoint() );
                 Telemetry.getValue("PathPlanner/AtGoal", controller.atGoal() );
             }, 
             (interrupted) -> { requirements.joystickDrive(0, 0, 0); }, 

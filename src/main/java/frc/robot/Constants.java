@@ -2,6 +2,7 @@ package frc.robot;
 
 import frc.lib.ArmPosition;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -63,7 +64,7 @@ public final class Constants {
         public static final double DRIVE_GEAR_RATIO = 6.75;
         public static final double AZIMUTH_GEAR_RATIO = 12.8;
 
-        public static final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+        public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
             new Translation2d(  ROBOT_WIDTH_METERS / 2,  ROBOT_WIDTH_METERS / 2 ),
             new Translation2d(  ROBOT_WIDTH_METERS / 2, -ROBOT_WIDTH_METERS / 2 ),
             new Translation2d( -ROBOT_WIDTH_METERS / 2,  ROBOT_WIDTH_METERS / 2 ),
@@ -144,6 +145,8 @@ public final class Constants {
         public static final double upChargeLine = 4.5;
         public static final double rightChargeLine = 14.05;
         public static final double leftChargeLine = 11.2;
+
+        public static final Field2d field2d = new Field2d();
     }
 
     public class LL {

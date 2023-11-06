@@ -1,12 +1,13 @@
 package frc.robot;
 import java.io.File;
+import java.util.HashMap;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -15,6 +16,7 @@ import frc.lib.ButtonBoard;
 import frc.lib.Telemetry;
 
 import frc.robot.Constants.ARM.positions;
+import frc.robot.commands.AutoBalance;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -34,7 +36,7 @@ public class RobotContainer {
   public LEDs m_LEDs = new LEDs();
   public PinchersofPower m_claw = new PinchersofPower(this);
   public Arm m_arm = new Arm(m_claw, copilotController);
-  public Drivetrain m_swerve = new Drivetrain(m_gyro, m_arm, m_claw, vision);
+  public Drivetrain m_swerve = new Drivetrain();
 
   public RobotContainer() {
     File[] paths = new File(Filesystem.getDeployDirectory(), "pathplanner").listFiles();
@@ -45,13 +47,6 @@ public class RobotContainer {
     }
     Telemetry.setValue("general/autonomous/availableRoutines", pathsString);
     Telemetry.setValue("general/autonomous/selectedRoutine", "SET ME");
-
-    SmartDashboard.putNumber("alignTranslateP", 5);//1.8;//3.25;//2.75;//2.5;//2.1;//2;//0.018;//0.03;//0.004 0.001
-    SmartDashboard.putNumber("alignTranslateI", 0.1);
-    SmartDashboard.putNumber("alignTranslateD", 0);
-    SmartDashboard.putNumber("alignRotateP", 2);// 2v.5//12.5;//15;//0.00005
-    SmartDashboard.putNumber("alignRotateI", 0);
-    SmartDashboard.putNumber("alignRotateD", 0); // 0.1
 
     configureButtonBindings();
 
@@ -70,7 +65,7 @@ public class RobotContainer {
     // driverController.y().onTrue(
     //   new InstantCommand( () -> m_swerve.resetPose(new Pose2d(9 , 3, new Rotation2d())) ));
       
-    driverController.x().whileTrue(new InstantCommand(() -> m_swerve.moveToPositionCommand().schedule()));
+    driverController.x().whileTrue(new InstantCommand(() -> m_swerve.moveToPositionCommand(m_claw::wantCone).schedule()));
     driverController.x().onFalse(new InstantCommand(() -> {}, m_swerve));
 
     // driverController.y().onTrue(new InstantCommand(
@@ -137,7 +132,28 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return m_swerve.getAutonomousCommand().andThen(new InstantCommand( () -> m_swerve.stopModules()));
+    
+    HashMap<String, Command> eventMap = new HashMap<>();
+    eventMap.put("marker1", new PrintCommand("Passed marker 1"));
+    eventMap.put("placeHighCone", m_arm.goToScoreHigh().withTimeout(1.5));
+    eventMap.put("placeMidCone", m_arm.goToScoreMid().withTimeout(1.5));
+    eventMap.put("placeHighCube", m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCube).withTimeout(1.5));
+    eventMap.put("tuck", m_arm.moveToPositionTerminatingCommand(positions.Idle).withTimeout(0.5));
+    eventMap.put("release", m_claw.outTakeCommand().andThen(new WaitCommand(.25)));
+    eventMap.put("pickupLow", m_arm.moveToPositionCommand(positions.AutonFloor).withTimeout(0.1));
+    eventMap.put("pickupLowAlt", m_arm.moveToPositionCommand(positions.FloorAlt).withTimeout(0.85));
+    eventMap.put("intake",(m_claw.intakeCommand().repeatedly().withTimeout(0.5)));
+    eventMap.put("autobalance", new AutoBalance(m_swerve, m_swerve.getGyro()));
+    eventMap.put("coneMode", new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); m_claw.spinSlow(); } ));
+    eventMap.put("cubeMode", new InstantCommand( () -> { m_claw.setCone(false); m_claw.openGrip(); } ));
+    eventMap.put("wait", new WaitCommand(0.75));
+
+    return m_swerve.getAutonomousCommand(eventMap, new SequentialCommandGroup(
+      new InstantCommand( () -> m_swerve.stopModules() ),
+      new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); } ),
+      m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCone).withTimeout(2.75).andThen(m_arm.moveToPositionCommand(positions.DipHighCone).withTimeout(0.75)),
+      m_claw.outTakeCommand().andThen(new WaitCommand(.25)),
+      m_arm.moveToPositionTerminatingCommand(positions.Idle) )).andThen(new InstantCommand( () -> m_swerve.stopModules()));
   }
 
   public static DriverStation.Alliance getDriverAlliance() {
