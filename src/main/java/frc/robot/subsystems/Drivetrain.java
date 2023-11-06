@@ -112,37 +112,8 @@ public class Drivetrain extends SubsystemBase {
     Telemetry.setValue("drivetrain/PathPlanner/rotationKd", _rotationKd);
 
 
-   if (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Red)) {
-      _coneWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
-      _coneWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
-      _coneWaypoints.add(new Pose2d(14.75, 4.98, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 3.94 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 3.38 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 2.28 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 1.67, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 0.47 + 0.05, new Rotation2d()));
-
-      _cubeWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
-      _cubeWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
-      _cubeWaypoints.add(new Pose2d(14.75, 1.13 - 0.05, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(14.75, 2.95 - 0.05, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(14.75, 4.52 - 0.05, new Rotation2d()));
-    } else if (DriverStation.getAlliance().equals(DriverStation.Alliance.Blue)) {
-      _coneWaypoints.add(new Pose2d(15.79, 7.33, new Rotation2d(0)));
-      _coneWaypoints.add(new Pose2d(15.79, 6.00, new Rotation2d(0)));
-      _coneWaypoints.add(new Pose2d(1.82, 5.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(1.82, 3.84, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(1.82, 3.28, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(1.82, 2.18, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(1.82, 1.60, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(1.82, 0.47, new Rotation2d()));
-
-      _cubeWaypoints.add(new Pose2d(1.82, 1.03, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(1.82, 2.75, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(1.82, 4.42, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(15.79, 7.33, new Rotation2d(0)));
-      _cubeWaypoints.add(new Pose2d(15.79, 6.00, new Rotation2d(0)));
-    }
+    if      (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Red ))  loadRedWayPoints();
+    else if (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Blue)) loadBlueWayPoints();
 
     _moveToPosition = new moveToPosition(
       this::getPose,
@@ -196,6 +167,7 @@ public class Drivetrain extends SubsystemBase {
     // SmartDashboard.putNumberArray("e", e);
   }
 
+  ///////////////////////////////////// DRIVE FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public void joystickDrive(double LX, double LY, double RX) {
     if ( !isRobotOriented ) m_chassisSpeeds = 
       ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -248,6 +220,7 @@ public class Drivetrain extends SubsystemBase {
     shwerveDrive.set(0);
   }
 
+  //////////////////////////////////////// AUTO-ALIGNMENT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public Command moveToPositionCommand () {
     Pose2d actualPose = _robotPose; 
 
@@ -256,17 +229,22 @@ public class Drivetrain extends SubsystemBase {
 
     SimpleUtils.poseToTelemetry(actualPose, "Align/startPose");
     SimpleUtils.poseToTelemetry(closest, "Align/choosenWaypoint");
-    if(_robotPose.getX() >= 14.05 || _robotPose.getX() < 8) return pathToCommand(closest);
+    if(_robotPose.getX() >= 14.05 || _robotPose.getX() < 8) return pathToCommand( closest );
     return pathToCommand( _moveToPosition.optimizeWaypoints( closest ) );
   }
 
   public Command pathToCommand (Pose2d target) {
+    Pose2d edgePose = new Pose2d(
+      _robotPose.getX(), 
+      target.getY(), 
+      target.getRotation() );
+
+    field2d.getObject("targetEdge").setPose(edgePose);
+    field2d.getObject("target").setPose(target);
+
     Command toAlign = _moveToPosition.generateMoveToPositionCommandTimed(
-      new Pose2d(
-        _robotPose.getX(), 
-        target.getY(), 
-        target.getRotation() ),
-        new ChassisSpeeds(0.75, 0.0, 0.0),
+      edgePose,
+      new ChassisSpeeds(0.75, 0.0, 0.0),
       new Pose2d( 0.1, 0.1, Rotation2d.fromDegrees(3) ),
       _holonomicConstraints,
       generateAlignmentController() );
@@ -325,6 +303,97 @@ public class Drivetrain extends SubsystemBase {
     return controller;
   }
 
+  private void loadRedWayPoints() {
+    _coneWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
+    _coneWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
+    _coneWaypoints.add(new Pose2d(14.75, 4.98, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 3.94 - 0.05, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 3.38 - 0.05, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 2.28 - 0.05, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 1.67, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 0.47 + 0.05, new Rotation2d()));
+
+    _cubeWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
+    _cubeWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
+    _cubeWaypoints.add(new Pose2d(14.75, 1.13 - 0.05, new Rotation2d()));
+    _cubeWaypoints.add(new Pose2d(14.75, 2.95 - 0.05, new Rotation2d()));
+    _cubeWaypoints.add(new Pose2d(14.75, 4.52 - 0.05, new Rotation2d()));
+  }
+
+  private void loadBlueWayPoints() {
+    _coneWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
+    _coneWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
+    _coneWaypoints.add(new Pose2d(14.75, 4.98, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 3.94 - 0.05, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 3.38 - 0.05, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 2.28 - 0.05, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 1.67, new Rotation2d()));
+    _coneWaypoints.add(new Pose2d(14.75, 0.47 + 0.05, new Rotation2d()));
+
+    _cubeWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
+    _cubeWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
+    _cubeWaypoints.add(new Pose2d(14.75, 1.13 - 0.05, new Rotation2d()));
+    _cubeWaypoints.add(new Pose2d(14.75, 2.95 - 0.05, new Rotation2d()));
+    _cubeWaypoints.add(new Pose2d(14.75, 4.52 - 0.05, new Rotation2d()));
+  }
+
+  /////////////////////////////// AUTONOMOUS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+  public Command getAutonomousCommand () {
+      if (Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove").equals("special")) {
+        return new InstantCommand(()->setRobotOriented(true)).andThen(new RepeatCommand(new InstantCommand(()->joystickDrive(0, 0.5, 0))).withTimeout(1).andThen(new InstantCommand(()->stopModules())));
+      }
+  
+      // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
+      // for every path in the group
+      try {
+        List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(
+          Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove"),
+          PathPlanner.getConstraintsFromPath(
+            Telemetry.getValue("general/autonomous/selectedRoutine", "Mobility")));
+  
+        HashMap<String, Command> eventMap = new HashMap<>();
+        eventMap.put("marker1", new PrintCommand("Passed marker 1"));
+        eventMap.put("placeHighCone", m_arm.goToScoreHigh().withTimeout(1.5));
+        eventMap.put("placeMidCone", m_arm.goToScoreMid().withTimeout(1.5));
+        eventMap.put("placeHighCube", m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCube).withTimeout(1.5));
+        eventMap.put("tuck", m_arm.moveToPositionTerminatingCommand(positions.Idle).withTimeout(0.5));
+        eventMap.put("release", m_claw.outTakeCommand().andThen(new WaitCommand(.25)));
+        eventMap.put("pickupLow", m_arm.moveToPositionCommand(positions.AutonFloor).withTimeout(0.1));
+        eventMap.put("pickupLowAlt", m_arm.moveToPositionCommand(positions.FloorAlt).withTimeout(0.85));
+        eventMap.put("intake",(m_claw.intakeCommand().repeatedly().withTimeout(0.5)));
+        eventMap.put("autobalance", new AutoBalance(this, m_gyro));
+        eventMap.put("coneMode", new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); m_claw.spinSlow(); } ));
+        eventMap.put("cubeMode", new InstantCommand( () -> { m_claw.setCone(false); m_claw.openGrip(); } ));
+        eventMap.put("wait", new WaitCommand(0.75));
+  
+        SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+          () -> m_odometry.getEstimatedPosition(),
+          this::resetPose,
+          m_kinematics,
+          new PIDConstants(_translationKp, _translationKi, _translationKd),
+          new PIDConstants(_rotationKp, _rotationKi, _rotationKd),
+          this::driveFromModuleStates,
+          eventMap,
+          true,
+          this
+        );
+  
+        return autoBuilder.fullAuto(pathGroup);
+      } catch (Exception e) {
+        // uh oh
+        DriverStation.reportError("it crashed LOL " + e.getLocalizedMessage(), true);
+  
+        // score a preloaded cone if the auton crashes
+        return new SequentialCommandGroup(
+          new InstantCommand( () -> stopModules() ),
+          new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); } ),
+          m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCone).withTimeout(2.75).andThen(m_arm.moveToPositionCommand(positions.DipHighCone).withTimeout(0.75)),
+          m_claw.outTakeCommand().andThen(new WaitCommand(.25)),
+          m_arm.moveToPositionTerminatingCommand(positions.Idle) );
+      }
+    }
+
+  //////////////////////////////////////////// GETTERS AND SETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public boolean toggleRobotOrient() { 
     return isRobotOriented = !isRobotOriented; 
   }
@@ -371,60 +440,5 @@ public class Drivetrain extends SubsystemBase {
 
   public Pose2d getPose() { 
     return _robotPose; 
-  }
-
-  public Command getAutonomousCommand () {
-    if (Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove").equals("special")) {
-      return new InstantCommand(()->setRobotOriented(true)).andThen(new RepeatCommand(new InstantCommand(()->joystickDrive(0, 0.5, 0))).withTimeout(1).andThen(new InstantCommand(()->stopModules())));
-    }
-
-    // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
-    // for every path in the group
-    try {
-      List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(
-        Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove"),
-        PathPlanner.getConstraintsFromPath(
-          Telemetry.getValue("general/autonomous/selectedRoutine", "Mobility")));
-
-      HashMap<String, Command> eventMap = new HashMap<>();
-      eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-      eventMap.put("placeHighCone", m_arm.goToScoreHigh().withTimeout(1.5));
-      eventMap.put("placeMidCone", m_arm.goToScoreMid().withTimeout(1.5));
-      eventMap.put("placeHighCube", m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCube).withTimeout(1.5));
-      eventMap.put("tuck", m_arm.moveToPositionTerminatingCommand(positions.Idle).withTimeout(0.5));
-      eventMap.put("release", m_claw.outTakeCommand().andThen(new WaitCommand(.25)));
-      eventMap.put("pickupLow", m_arm.moveToPositionCommand(positions.AutonFloor).withTimeout(0.1));
-      eventMap.put("pickupLowAlt", m_arm.moveToPositionCommand(positions.FloorAlt).withTimeout(0.85));
-      eventMap.put("intake",(m_claw.intakeCommand().repeatedly().withTimeout(0.5)));
-      eventMap.put("autobalance", new AutoBalance(this, m_gyro));
-      eventMap.put("coneMode", new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); m_claw.spinSlow(); } ));
-      eventMap.put("cubeMode", new InstantCommand( () -> { m_claw.setCone(false); m_claw.openGrip(); } ));
-      eventMap.put("wait", new WaitCommand(0.75));
-
-      SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-        () -> m_odometry.getEstimatedPosition(),
-        this::resetPose,
-        m_kinematics,
-        new PIDConstants(_translationKp, _translationKi, _translationKd),
-        new PIDConstants(_rotationKp, _rotationKi, _rotationKd),
-        this::driveFromModuleStates,
-        eventMap,
-        true,
-        this
-      );
-
-      return autoBuilder.fullAuto(pathGroup);
-    } catch (Exception e) {
-      // uh oh
-      DriverStation.reportError("it crashed LOL " + e.getLocalizedMessage(), true);
-
-      // score a preloaded cone if the auton crashes
-      return new SequentialCommandGroup(
-        new InstantCommand( () -> stopModules() ),
-        new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); } ),
-        m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCone).withTimeout(2.75).andThen(m_arm.moveToPositionCommand(positions.DipHighCone).withTimeout(0.75)),
-        m_claw.outTakeCommand().andThen(new WaitCommand(.25)),
-        m_arm.moveToPositionTerminatingCommand(positions.Idle) );
-    }
   }
 }
