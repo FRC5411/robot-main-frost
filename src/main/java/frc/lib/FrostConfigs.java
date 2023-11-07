@@ -7,6 +7,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 
 import edu.wpi.first.math.controller.PIDController;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
@@ -78,6 +79,16 @@ public class FrostConfigs {
         motor.clearFaults();
         motor.setSmartCurrentLimit(60);
         motor.setSecondaryCurrentLimit(60);
+        motor.burnFlash();
+    }
+
+    public static void configArmMotor(CANSparkMax motor, boolean invert) {
+        motor.restoreFactoryDefaults();
+        motor.clearFaults();
+        motor.setIdleMode(IdleMode.kBrake);
+        motor.setInverted(invert);
+        motor.setSmartCurrentLimit(40);
+        motor.setSecondaryCurrentLimit(40);
         motor.burnFlash();
     }
 }

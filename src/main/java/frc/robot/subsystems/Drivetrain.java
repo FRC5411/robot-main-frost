@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.lib.SimpleUtils;
 import frc.lib.SwerveModule;
 import frc.lib.Telemetry;
@@ -49,7 +50,6 @@ public class Drivetrain extends SubsystemBase {
   private SwerveModulePosition[] modulePoses;
   private Pose2d _robotPose = new Pose2d();
   private Pose2d _lastPose = _robotPose;
-
   private SwerveDrivePoseEstimator odometry;
 
   private boolean isRobotOriented = false;
@@ -84,7 +84,6 @@ public class Drivetrain extends SubsystemBase {
     forwardKinematics = new ChassisSpeeds();
     moduleStates = new SwerveModuleState[4];
     modulePoses  = new SwerveModulePosition[4];
-
     odometry = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), getSwerveModulePositions(), _robotPose);
 
     _coneWaypoints = new ArrayList<Pose2d>();

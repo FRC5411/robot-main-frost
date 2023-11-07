@@ -225,6 +225,7 @@ public final class Constants {
         public static final double STAGE_1_Kg = 1.1;// 1.3 causes tiny pulse width modulation; 0.5
         public static final double STAGE_1_MAX_SPEED = 800;
         public static final double STAGE_1_MAX_ACCEL = 240;// 180;//200//170;//160;//140;//130
+        public static final Constraints STAGE_1_CONSTRAINTS = new Constraints(STAGE_1_MAX_SPEED, STAGE_1_MAX_ACCEL);
 
         public static final double STAGE_2_Kp = 0.0135;// 0.035//0.04//0.0325//0.008
         public static final double STAGE_2_Ki = 0.00;// 0.0025 //0.0065
@@ -233,6 +234,7 @@ public final class Constants {
         public static final double STAGE_2_Kg = 0.82;//0.72;// 0.92//1.4, 1.0
         public static final double STAGE_2_MAX_SPEED = 800;// 250;
         public static final double STAGE_2_MAX_ACCEL = 275;// 210;//200//190;//180;//160;//170//150
+        public static final Constraints STAGE_2_CONSTRAINTS = new Constraints(STAGE_1_MAX_SPEED, STAGE_1_MAX_ACCEL);
 
         public static final double STAGE_3_Kp = 0.0175;// 0.0255//0.0155;//0.005
         public static final double STAGE_3_Ki = 0;
@@ -241,6 +243,7 @@ public final class Constants {
         public static final double STAGE_3_Kg = 0.42;
         public static final double STAGE_3_MAX_SPEED = 800; // 500
         public static final double STAGE_3_MAX_ACCEL = 600;// 280;//250;//230;//300
+        public static final Constraints STAGE_3_CONSTRAINTS = new Constraints(STAGE_1_MAX_SPEED, STAGE_1_MAX_ACCEL);
     }
 
     public static double changeScope(double angle) {

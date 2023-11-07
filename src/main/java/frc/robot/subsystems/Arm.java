@@ -4,13 +4,11 @@ import static frc.robot.Constants.ARM.*;
 import java.util.HashMap;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,9 +17,12 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.lib.ArmPosition;
 import frc.lib.ButtonBoard;
+import frc.lib.FrostConfigs;
 import frc.lib.Telemetry;
+
 import frc.robot.Constants.ARM.positions;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DIO;
@@ -80,12 +81,9 @@ public class Arm extends SubsystemBase {
         m_stage2 = new CANSparkMax(CAN.ARM_STAGE_2_ID, MotorType.kBrushless);
         m_stage3 = new CANSparkMax(CAN.ARM_STAGE_3_ID, MotorType.kBrushless);
 
-        m_stage1.setIdleMode(IdleMode.kBrake);
-        m_stage2.setIdleMode(IdleMode.kBrake);
-        m_stage3.setIdleMode(IdleMode.kBrake);
-
-        m_stage2.setInverted(false);
-        m_stage3.setInverted(false);
+        FrostConfigs.configArmMotor(m_stage1, false);
+        FrostConfigs.configArmMotor(m_stage2, false);
+        FrostConfigs.configArmMotor(m_stage3, false);
 
         m_stage1Encoder = new DutyCycleEncoder(DIO.ARM_STAGE_1_ENCODER_ID);
         m_stage2Encoder = new DutyCycleEncoder(DIO.ARM_STAGE_2_ENCODER_ID);
@@ -95,36 +93,19 @@ public class Arm extends SubsystemBase {
         m_stage2FF = new ArmFeedforward(STAGE_2_Ks, STAGE_2_Kg, 0,0);
         m_stage3FF = new ArmFeedforward(STAGE_3_Ks, STAGE_3_Kg, 0,0);
 
-        m_stage1PID = new ProfiledPIDController(STAGE_1_Kp, STAGE_1_Ki, STAGE_1_Kd, new TrapezoidProfile.Constraints(STAGE_1_MAX_SPEED, STAGE_1_MAX_ACCEL));
-        m_stage1PID.enableContinuousInput(0, 360);
-        m_stage2PID = new ProfiledPIDController(STAGE_2_Kp, STAGE_2_Ki, STAGE_2_Kd, new TrapezoidProfile.Constraints(STAGE_2_MAX_SPEED, STAGE_2_MAX_ACCEL));
-        m_stage2PID.enableContinuousInput(0, 360);
-        m_stage3PID = new ProfiledPIDController(STAGE_3_Kp, STAGE_3_Ki, STAGE_3_Kd, new TrapezoidProfile.Constraints(STAGE_3_MAX_SPEED, STAGE_3_MAX_ACCEL));
-        m_stage3PID.enableContinuousInput(0, 360);
+        m_stage1PID = new ProfiledPIDController(STAGE_1_Kp, STAGE_1_Ki, STAGE_1_Kd, STAGE_1_CONSTRAINTS);
+        m_stage2PID = new ProfiledPIDController(STAGE_2_Kp, STAGE_2_Ki, STAGE_2_Kd, STAGE_2_CONSTRAINTS);
+        m_stage3PID = new ProfiledPIDController(STAGE_3_Kp, STAGE_3_Ki, STAGE_3_Kd, STAGE_3_CONSTRAINTS);
 
-        resetProfiles();
+        m_stage1PID.enableContinuousInput(0, 360);
+        m_stage2PID.enableContinuousInput(0, 360);
+        m_stage3PID.enableContinuousInput(0, 360);
 
         m_stage1PID.setTolerance(3.0);//0
         m_stage2PID.setTolerance(3.0);//3//2//1//0
         m_stage3PID.setTolerance(3.0);
 
-        m_stage1.restoreFactoryDefaults();
-        m_stage1.clearFaults();
-        m_stage1.setSmartCurrentLimit(40);
-        m_stage1.setSecondaryCurrentLimit(40);
-        m_stage1.burnFlash();
-
-        m_stage2.restoreFactoryDefaults();
-        m_stage2.clearFaults();
-        m_stage2.setSmartCurrentLimit(40);
-        m_stage2.setSecondaryCurrentLimit(40);
-        m_stage2.burnFlash();
-
-        m_stage3.restoreFactoryDefaults();
-        m_stage3.clearFaults();
-        m_stage3.setSmartCurrentLimit(40);
-        m_stage3.setSecondaryCurrentLimit(40);
-        m_stage3.burnFlash();
+        resetProfiles();
 
         m_copilotController.button(10).whileTrue(new RepeatCommand( new InstantCommand(() -> {
             if (m_copilotController.getRawButton(9)) {
@@ -187,7 +168,13 @@ public class Arm extends SubsystemBase {
         setStage3Target(stage3Angle % 360);
     }
 
-    private void moveToPosition (positions position) {
+    private void moveToPositionInit (positions position) {
+        if(!(position == positions.DipHighCone) || (position == positions.DipMidCone)) resetProfiles();
+        RobotContainer.setCopilotLEDs();
+        movingToIdle = m_clawSubsystem.setClawState(position);
+    }
+
+    private void moveToPositionExecute (positions position) {
         target = position;
         ArmPosition internalTarget = positionMap.get(position);
         if (!movingToIdle || (movingToIdle &&
@@ -246,12 +233,8 @@ public class Arm extends SubsystemBase {
 
     public Command moveToPositionCommand (positions position) {
         return new FunctionalCommand(
-            () -> {
-                if(!(position == positions.DipHighCone) || (position == positions.DipMidCone)) resetProfiles();
-                RobotContainer.setCopilotLEDs();
-                movingToIdle = m_clawSubsystem.setClawState(position);
-            }, 
-            () -> moveToPosition(position), 
+            () -> moveToPositionInit(position), 
+            () -> moveToPositionExecute(position), 
             interrupted -> { movingToIdle = false; },
             () -> false,
             this
@@ -260,12 +243,8 @@ public class Arm extends SubsystemBase {
 
     public Command moveToPositionTerminatingCommand( positions position ) {
         return new FunctionalCommand(
-            () -> {
-                if(!(position == positions.DipHighCone) || (position == positions.DipMidCone)) resetProfiles();
-                RobotContainer.setCopilotLEDs();
-                movingToIdle = m_clawSubsystem.setClawState(position);
-            }, 
-            () -> moveToPosition(position), 
+            () -> moveToPositionInit(position), 
+            () -> moveToPositionExecute(position), 
             interrupted -> { movingToIdle = false; },
             this::isAtTarget,
             this
@@ -325,28 +304,12 @@ public class Arm extends SubsystemBase {
         Telemetry.setValue("Arm/manualTarget/manualTargetTheta", m_manualTargetTheta);
         double[] telemetryConversion = inverseKinematics(m_manualTargetX, m_manualTargetY, m_manualTargetTheta);
         Telemetry.setValue("Arm/manualTarget/manualTargetFK", forwardKinematics(telemetryConversion[0], telemetryConversion[1], telemetryConversion[2]));
-        Telemetry.setValue("Arm/stage1/setpoint", m_stage1.get());
-        Telemetry.setValue("Arm/stage1/temperature", m_stage1.getMotorTemperature());
-        Telemetry.setValue("Arm/stage1/outputVoltage", m_stage1.getAppliedOutput());
-        Telemetry.setValue("Arm/stage1/statorCurrent", m_stage1.getOutputCurrent());
-        Telemetry.setValue("Arm/stage1/actualPosition", m_stage1Encoder.getAbsolutePosition()*360);
-        Telemetry.setValue("Arm/stage1/actualPositionOffset", m_stage1Encoder.getAbsolutePosition()*360 - STAGE_1_OFFSET);
+        Telemetry.armTelemetry(m_stage1, m_stage1Encoder, STAGE_1_OFFSET, "stage1");
         Telemetry.setValue("Arm/stage1/targetPosition", m_stage1Target);
-        Telemetry.setValue("Arm/stage2/setpoint", m_stage2.get());
-        Telemetry.setValue("Arm/stage2/temperature", m_stage2.getMotorTemperature());
-        Telemetry.setValue("Arm/stage2/outputVoltage", m_stage2.getAppliedOutput());
-        Telemetry.setValue("Arm/stage2/statorcurrent", m_stage2.getOutputCurrent());
-        Telemetry.setValue("Arm/stage2/actualPosition", m_stage2Encoder.getAbsolutePosition()*360);
-        Telemetry.setValue("Arm/stage2/actualPositionOffset", m_stage2Encoder.getAbsolutePosition()*360 - STAGE_2_OFFSET);
+        Telemetry.armTelemetry(m_stage2, m_stage2Encoder, STAGE_2_OFFSET, "stage2");
         Telemetry.setValue("Arm/stage2/targetPosition", m_stage2Target);
-        Telemetry.setValue("Arm/stage3/setpoint", m_stage3.get());
-        Telemetry.setValue("Arm/stage3/temperature", m_stage3.getMotorTemperature());
-        Telemetry.setValue("Arm/stage3/outputVoltage", m_stage3.getAppliedOutput());
-        Telemetry.setValue("Arm/stage3/statorCurrent", m_stage3.getOutputCurrent());
-        Telemetry.setValue("Arm/stage3/actualPosition", m_stage3Encoder.getAbsolutePosition()*360);
-        Telemetry.setValue("Arm/stage3/actualPositionOffset", m_stage3Encoder.getAbsolutePosition()*360 - STAGE_3_OFFSET);
+        Telemetry.armTelemetry(m_stage3, m_stage3Encoder, STAGE_3_OFFSET, "stage3");
         Telemetry.setValue("Arm/stage3/targetPosition", m_stage3Target);
-        Telemetry.setValue("Arm/stage2/internalVelocity", m_stage2.getEncoder().getVelocity());
 
         if ( DriverStation.isEnabled() || DriverStation.isAutonomousEnabled() ) {
             double stage1Calc = 
@@ -389,16 +352,12 @@ public class Arm extends SubsystemBase {
             m_stage1.set(0);
             m_stage2.set(0);
             m_stage3.set(0);
-            
-            // m_stage1PID.reset(m_stage1Encoder.getAbsolutePosition()*360 - STAGE_1_OFFSET);
-            // m_stage2PID.reset(m_stage2Encoder.getAbsolutePosition()*360 - STAGE_2_OFFSET);
-            // m_stage3PID.reset(m_stage3Encoder.getAbsolutePosition()*360 - STAGE_3_OFFSET);
             resetProfiles();
         }
     }
     
-    @Override  public void simulationPeriodic() {}
-
+    @Override  
+    public void simulationPeriodic() {}
 
     public void resetProfiles() {
         m_stage1PID.reset(m_stage1Encoder.getAbsolutePosition() * 360 - STAGE_1_OFFSET);
