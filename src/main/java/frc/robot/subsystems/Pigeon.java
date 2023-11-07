@@ -6,11 +6,11 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.math.geometry.Rotation2d;
 import static frc.robot.Constants.CAN.PIGEON_ID;
 import frc.lib.Telemetry;
 
-public class Pigeon extends SubsystemBase {
+public class Pigeon {
   private Pigeon2 pigeon;
 
   private double yaw = 0;
@@ -31,6 +31,10 @@ public class Pigeon extends SubsystemBase {
     return yaw % 360;
   }
 
+  public Rotation2d getRotation2d() {
+    return Rotation2d.fromDegrees(getYaw());
+  }
+
   public double getPitch () {
     return pitch;
   }
@@ -47,7 +51,6 @@ public class Pigeon extends SubsystemBase {
     pigeon.setYaw(0);
   }
 
-  @Override
   public void periodic() {
     yaw = pigeon.getYaw() % 360;
     pitch = pigeon.getPitch();
@@ -59,7 +62,4 @@ public class Pigeon extends SubsystemBase {
     Telemetry.setValue("drivetrain/gyro/roll", roll);
     Telemetry.setValue("drivetrain/gyro/pitch", pitch);
   }
-
-  @Override
-  public void simulationPeriodic() {}
 }

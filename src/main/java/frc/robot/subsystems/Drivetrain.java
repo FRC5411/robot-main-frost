@@ -8,20 +8,16 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.server.PathPlannerServer;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -29,10 +25,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.SimpleUtils;
@@ -44,55 +38,65 @@ import frc.robot.commands.moveToPosition;
 import frc.robot.RobotContainer;
 
 public class Drivetrain extends SubsystemBase {
-  private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds();
-  private ChassisSpeeds forwardKinematics = new ChassisSpeeds();
+  private final CANSparkMax shwerveDrive;
+  private final SwerveModule[] swerveModules;
+  private final VisionSubsystem vision;
+  private final Pigeon gyro;
 
-  private SwerveModuleState[] moduleStates = new SwerveModuleState[4];
-  private SwerveModulePosition[] modulePoses = new SwerveModulePosition[4];
-
-  private final CANSparkMax shwerveDrive = new CANSparkMax(SHWERVE_DRIVE_ID, MotorType.kBrushless);
-
-  private final SwerveModule[] swerveModules = new SwerveModule[] {
-    new SwerveModule( 
-      FL_DRIVE_ID, FL_AZIMUTH_ID, FL_CANCODER_ID, 
-      FL_PID, FL_ECODER_OFFSET, FL_kF, "FL" ),
-    new SwerveModule( 
-      FR_DRIVE_ID, FR_AZIMUTH_ID, FR_CANCODER_ID, 
-      FR_PID, FR_ECODER_OFFSET, FR_kF, "FR" ),
-    new SwerveModule( 
-      BL_DRIVE_ID, BL_AZIMUTH_ID, BL_CANCODER_ID, 
-      BL_PID, BL_ECODER_OFFSET, BL_kF, "BL" ),
-    new SwerveModule( 
-      BR_DRIVE_ID, BR_AZIMUTH_ID, BR_CANCODER_ID, 
-      BR_PID, BR_ECODER_OFFSET, BR_kF, "BR" ),
-  };
-
-  private final VisionSubsystem vision = new VisionSubsystem();
-  private final Pigeon gyro = new Pigeon();
-
-  private boolean isRobotOriented = false;
-
-  private SwerveDrivePoseEstimator odometry = new SwerveDrivePoseEstimator(
-    kinematics,
-    new Rotation2d(), 
-    getSwerveModulePositions(), 
-    new Pose2d());;
-
-  private List<Pose2d> _coneWaypoints = new ArrayList<Pose2d>();
-  private List<Pose2d> _cubeWaypoints = new ArrayList<Pose2d>();
-
+  private ChassisSpeeds m_chassisSpeeds;
+  private ChassisSpeeds forwardKinematics;
+  private SwerveModuleState[] moduleStates;
+  private SwerveModulePosition[] modulePoses;
   private Pose2d _robotPose = new Pose2d();
   private Pose2d _lastPose = _robotPose;
 
-  private moveToPosition _moveToPosition = new moveToPosition(
-    this::getPose,
-    this::getChassisSpeeds,
-    this::driveFromChassisSpeeds,
-    this );
+  private SwerveDrivePoseEstimator odometry;
+
+  private boolean isRobotOriented = false;
+
+  private List<Pose2d> _coneWaypoints;
+  private List<Pose2d> _cubeWaypoints;
+
+  private moveToPosition _moveToPosition;
 
   public Drivetrain() {
+    shwerveDrive = new CANSparkMax(SHWERVE_DRIVE_ID, MotorType.kBrushless);
+
+    swerveModules = new SwerveModule[] {
+      new SwerveModule( 
+        FL_DRIVE_ID, FL_AZIMUTH_ID, FL_CANCODER_ID, 
+        FL_PID, FL_ECODER_OFFSET, FL_kF, "FL" ),
+      new SwerveModule( 
+        FR_DRIVE_ID, FR_AZIMUTH_ID, FR_CANCODER_ID, 
+        FR_PID, FR_ECODER_OFFSET, FR_kF, "FR" ),
+      new SwerveModule( 
+        BL_DRIVE_ID, BL_AZIMUTH_ID, BL_CANCODER_ID, 
+        BL_PID, BL_ECODER_OFFSET, BL_kF, "BL" ),
+      new SwerveModule( 
+        BR_DRIVE_ID, BR_AZIMUTH_ID, BR_CANCODER_ID, 
+        BR_PID, BR_ECODER_OFFSET, BR_kF, "BR" ),
+    };
+
+    vision = new VisionSubsystem();
+    gyro = new Pigeon();
+
+    m_chassisSpeeds = new ChassisSpeeds();
+    forwardKinematics = new ChassisSpeeds();
+    moduleStates = new SwerveModuleState[4];
+    modulePoses  = new SwerveModulePosition[4];
+
+    odometry = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), getSwerveModulePositions(), _robotPose);
+
+    _coneWaypoints = new ArrayList<Pose2d>();
+    _cubeWaypoints = new ArrayList<Pose2d>();
     if      (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Red ))  loadRedWayPoints();
     else if (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Blue)) loadBlueWayPoints();
+
+    _moveToPosition = new moveToPosition(
+      this::getPose,
+      this::getChassisSpeeds,
+      this::driveFromChassisSpeeds,
+      this );
 
     PathPlannerServer.startServer(6969);
 
@@ -101,101 +105,66 @@ public class Drivetrain extends SubsystemBase {
 
   @Override
   public void periodic() {
-    //////////// MODULES \\\\\\\\\\\\
+    Telemetry.setValue("drivetrain/isRobotOriented", isRobotOriented);
     for(int i = 0; i < swerveModules.length; i++) swerveModules[i].telemetry();
-    /////////////////////////
+    gyro.periodic();
 
     ///////////// Pose \\\\\\\\\\\\\\\\\
-    Telemetry.setValue("drivetrain/isRobotOriented", isRobotOriented);
-    // Telemetry.setValue("e", modules);
-    if ( vision.getCenterLimelight().hasTarget() ) 
-      odometry.addVisionMeasurement(
-        vision.getCenterLimelight().getPose(), 
-        Timer.getFPGATimestamp() - vision.getCenterLimelight().getLatency(),
-        VecBuilder.fill(
-          3.1 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 
-          3.1 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 10000000) );
-
-    _robotPose = odometry.update(new Rotation2d(Math.toRadians(gyro.getYaw())), getSwerveModulePositions());
-
-    Transform2d transform = _robotPose.minus(_lastPose).div(0.02);
-
-    forwardKinematics = new ChassisSpeeds(
-      transform.getX(), 
-      transform.getY(), 
-      transform.getRotation().getDegrees() );
+    _robotPose = odometry.update(gyro.getRotation2d(), getSwerveModulePositions());
+    vision.addVisionMeasurement( odometry );
+    forwardKinematics = SimpleUtils.transformToChassisSpeeds( _robotPose.minus( _lastPose ).div( 0.02 ) );
 
     SimpleUtils.poseToTelemetry( _robotPose, "/chassis/" );
-    Telemetry.setValue("drivetrain/chassis/robot/forwardSpeed", forwardKinematics.vxMetersPerSecond);
-    Telemetry.setValue("drivetrain/chassis/robot/rightwardSpeed", forwardKinematics.vyMetersPerSecond);
-    Telemetry.setValue("drivetrain/chassis/clockwiseSpeed", Math.toDegrees(forwardKinematics.omegaRadiansPerSecond));
+    SimpleUtils.chassisToTelmetry(m_chassisSpeeds, "/chassis/" );
 
     _lastPose = _robotPose;
 
     field2d.setRobotPose(_robotPose);
-    SmartDashboard.putData(field2d);   
-    /////////////////////////////////////
-
-    // double[] e = new double[8];
-    // e[0] = modules[0].angle.getRadians();
-    // e[1] = modules[0].speedMetersPerSecond;
-    // e[2] = modules[1].angle.getRadians();
-    // e[3] = modules[2].speedMetersPerSecond;
-    // SmartDashboard.putNumberArray("e", e);
+    SmartDashboard.putData(field2d);
   }
 
   ///////////////////////////////////// DRIVE FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public void joystickDrive(double LX, double LY, double RX) {
-    if ( !isRobotOriented ) m_chassisSpeeds = 
-      ChassisSpeeds.fromFieldRelativeSpeeds(
-        LY * MAX_LINEAR_SPEED,
-        -LX * MAX_LINEAR_SPEED,
-        -RX * MAX_ROTATION_SPEED, 
-        odometry.getEstimatedPosition().getRotation().plus(Rotation2d.fromDegrees(
+    m_chassisSpeeds = SimpleUtils.discretize( new ChassisSpeeds(
+      LY * MAX_LINEAR_SPEED, 
+     -LX * MAX_LINEAR_SPEED, 
+     -RX * MAX_ROTATION_SPEED ) );
+
+    if ( !isRobotOriented )
+      m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        m_chassisSpeeds, gyro.getRotation2d().plus(Rotation2d.fromDegrees(
           (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) ? 180 : 0 ) ) );
 
-    else m_chassisSpeeds = new ChassisSpeeds(LY * MAX_LINEAR_SPEED, -LX * MAX_LINEAR_SPEED, -RX * MAX_ROTATION_SPEED);
-
-    m_chassisSpeeds = SimpleUtils.discretize( m_chassisSpeeds );
     moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
-
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_LINEAR_SPEED);
     setDesiredStates();
   }
 
   // For autonomous
   public void driveFromModuleStates ( SwerveModuleState[] modules ) {
-    modules = kinematics.toSwerveModuleStates( SimpleUtils.discretize( kinematics.toChassisSpeeds(modules) ) );
-    SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
+    moduleStates = kinematics.toSwerveModuleStates( SimpleUtils.discretize( kinematics.toChassisSpeeds( modules ) ) );
     setDesiredStates();
   }
 
   public void driveFromChassisSpeeds (ChassisSpeeds speeds) {
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-      speeds, odometry.getEstimatedPosition().getRotation() );
-
-    moduleStates = kinematics.toSwerveModuleStates( speeds );
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_LINEAR_SPEED);
+    m_chassisSpeeds = SimpleUtils.discretize( ChassisSpeeds.fromFieldRelativeSpeeds( speeds, gyro.getRotation2d() ) );
+    moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
     setDesiredStates();
   }
 
-  public void stopModules () { 
-    for(int i = 0; i <= 3; i++) swerveModules[i].stopMotors(); 
-  }
-
   public void setDesiredStates() { 
-    for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( moduleStates[i] ); 
+    SwerveDriveKinematics.desaturateWheelSpeeds( moduleStates, MAX_LINEAR_SPEED );
+    for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( moduleStates[i] );
   }
 
   public void shwerve ( double LX, double LY) {
     // 6in diameter wheels, 10:1 gearbox
-    if (isRobotOriented) shwerveDrive.set(MathUtil.clamp(-LX*9, -1, 1));
+    if (isRobotOriented) shwerveDrive.set(MathUtil.clamp(-LX * 9, -1, 1));
     else noShwerve();
   }
 
-  public void noShwerve () {
-    shwerveDrive.set(0);
-  }
+  public void stopModules () { for(int i = 0; i <= 3; i++) swerveModules[i].stopMotors(); }
+
+  public void noShwerve () { shwerveDrive.set(0); }
 
   //////////////////////////////////////// AUTO-ALIGNMENT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public Command moveToPositionCommand (BooleanSupplier coneOrCube) {
@@ -210,7 +179,7 @@ public class Drivetrain extends SubsystemBase {
     return pathToCommand( _moveToPosition.optimizeWaypoints( closest ) );
   }
 
-  public Command pathToCommand (Pose2d target) {
+  public Command pathToCommand ( Pose2d target ) {
     Pose2d edgePose = new Pose2d(
       _robotPose.getX(), 
       target.getY(), 
@@ -219,32 +188,31 @@ public class Drivetrain extends SubsystemBase {
     field2d.getObject("targetEdge").setPose(edgePose);
     field2d.getObject("target").setPose(target);
 
-    Command toAlign = _moveToPosition.generateMoveToPositionCommandTimed(
-      edgePose,
-      new ChassisSpeeds(0.75, 0.0, 0.0),
-      new Pose2d( 0.1, 0.1, Rotation2d.fromDegrees(3) ),
-      _holonomicConstraints,
-      generateAlignmentController() );
-
-    Command toGoal = _moveToPosition.generateMoveToPositionCommand( 
-      target,
-      new Pose2d(), 
-      generateAlignmentController() );
-
-    return new SequentialCommandGroup(toAlign, toGoal);
+    return new SequentialCommandGroup(
+      _moveToPosition.generateMoveToPositionCommandTimed(
+        edgePose,
+        new ChassisSpeeds(0.75, 0.0, 0.0),
+        defaultTolerance,
+        _holonomicConstraints,
+        generateAlignmentController() ),
+      _moveToPosition.generateMoveToPositionCommand( 
+        target,
+        new Pose2d(), 
+        generateAlignmentController() ));
   }
 
-  public Command pathToCommand(List<Pose2d> waypoints) {
+  public Command pathToCommand( List<Pose2d> waypoints ) {
     field2d.getObject("Targets").setPoses(waypoints);
     SequentialCommandGroup commands = new SequentialCommandGroup();
 
-    for(int i = 0; i < waypoints.size() - 1; i++)
+    for(int i = 0; i < waypoints.size() - 1; i++) {
       commands.addCommands(
         _moveToPosition.generateMoveToPositionCommandTimed(
           waypoints.get(i),
-          new Pose2d( 0.1, 0.1, Rotation2d.fromDegrees(3) ),
+          defaultTolerance,
           _holonomicConstraints,
           generateAlignmentController() ) );
+    }     
 
     commands.addCommands(
       _moveToPosition.generateMoveToPositionCommand(
@@ -317,33 +285,29 @@ public class Drivetrain extends SubsystemBase {
   /////////////////////////////// AUTONOMOUS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public Command getAutonomousCommand (HashMap<String, Command> eventMap, Command backUp) {
       if (Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove").equals("special")) {
-        return new InstantCommand(()->setRobotOriented(true)).andThen(new RepeatCommand(new InstantCommand(()->joystickDrive(0, 0.5, 0))).withTimeout(1).andThen(new InstantCommand(()->stopModules())));
+        return new SequentialCommandGroup(
+          new InstantCommand( ()-> setRobotOriented(true) ),
+          new InstantCommand( ()-> joystickDrive(0, 0.5, 0) ).repeatedly().withTimeout(1),
+          new InstantCommand( () -> stopModules() ));
       }
-  
-      // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
-      // for every path in the group
       try {
-        List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(
-          Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove"),
-          PathPlanner.getConstraintsFromPath(
-            Telemetry.getValue("general/autonomous/selectedRoutine", "Mobility")));
-  
         return new SwerveAutoBuilder(
           this::getPose,
           this::resetPose,
           kinematics,
-          new PIDConstants(_translationKp, _translationKi, _translationKd),
-          new PIDConstants(_rotationKp, _rotationKi, _rotationKd),
+          _translationPID,
+          _rotationPID,
           this::driveFromModuleStates,
           eventMap,
           true,
           this
-          ).fullAuto( pathGroup );
+          ).fullAuto( PathPlanner.loadPathGroup(
+            Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove"),
+            PathPlanner.getConstraintsFromPath(
+              Telemetry.getValue("general/autonomous/selectedRoutine", "Mobility") ) ) );
 
       } catch (Exception e) {
-        // uh oh
         DriverStation.reportError("it crashed LOL " + e.getLocalizedMessage(), true);
-        // score a preloaded cone if the auton crashes
         return backUp;
       }
     }
@@ -375,12 +339,12 @@ public class Drivetrain extends SubsystemBase {
       new Pose2d(
         vision.getCenterLimelight().getPose().getX(), 
         vision.getCenterLimelight().getPose().getY(), 
-        Rotation2d.fromDegrees( gyro.getYaw() ) ) );
+        gyro.getRotation2d() ) );
   }
 
   public void resetPose(Pose2d pose) {
     odometry.resetPosition(
-      Rotation2d.fromDegrees( gyro.getYaw() ), 
+      gyro.getRotation2d(), 
       getSwerveModulePositions(), 
       pose);
   }

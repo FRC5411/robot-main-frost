@@ -6,7 +6,11 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+
+import com.pathplanner.lib.auto.PIDConstants;
 
 import edu.wpi.first.math.controller.PIDController;
 
@@ -121,6 +125,11 @@ public final class Constants {
         public static final double _rotationKp = 1.83;//1.83;// 2.5//12.5;//15;//0.00005
         public static final double _rotationKi = 0;
         public static final double _rotationKd = 0.085; // 0.1
+
+        public static final PIDConstants _translationPID = 
+            new PIDConstants(_translationKp, _translationKi, _translationKd);
+        public static final PIDConstants _rotationPID = 
+            new PIDConstants(_rotationKp,    _rotationKi,    _rotationKd);
       
         public static final double _alignXKp = 3.0;//5.5;//5; //5.5;
         public static final double _alignXKi = 0.0;//0.1;//0.;
@@ -141,6 +150,11 @@ public final class Constants {
         public static final HolonomicConstraints _holonomicConstraints = 
           new HolonomicConstraints(_XConstraints, _YConstraints, _rotConstraints);
 
+        public static final Pose2d defaultTolerance = new Pose2d(
+            0.1, 
+            0.1, 
+            Rotation2d.fromDegrees(3) );
+
         public static final double downChargeLine = 1.0;
         public static final double upChargeLine = 4.5;
         public static final double rightChargeLine = 14.05;
@@ -149,9 +163,9 @@ public final class Constants {
         public static final Field2d field2d = new Field2d();
     }
 
-    public class LL {
-        public static final double SLOPE = 0;
-        public static final double YINT = 0;
+    public static class LL {
+        public static final double translationGains = 3.1;
+        public static final double rotationGains = 1000000;
     }
 
     public static final class ARM {
