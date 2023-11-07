@@ -234,7 +234,7 @@ public final class Constants {
         public static final double STAGE_2_Kg = 0.82;//0.72;// 0.92//1.4, 1.0
         public static final double STAGE_2_MAX_SPEED = 800;// 250;
         public static final double STAGE_2_MAX_ACCEL = 275;// 210;//200//190;//180;//160;//170//150
-        public static final Constraints STAGE_2_CONSTRAINTS = new Constraints(STAGE_1_MAX_SPEED, STAGE_1_MAX_ACCEL);
+        public static final Constraints STAGE_2_CONSTRAINTS = new Constraints(STAGE_2_MAX_SPEED, STAGE_2_MAX_ACCEL);
 
         public static final double STAGE_3_Kp = 0.0175;// 0.0255//0.0155;//0.005
         public static final double STAGE_3_Ki = 0;
@@ -243,7 +243,7 @@ public final class Constants {
         public static final double STAGE_3_Kg = 0.42;
         public static final double STAGE_3_MAX_SPEED = 800; // 500
         public static final double STAGE_3_MAX_ACCEL = 600;// 280;//250;//230;//300
-        public static final Constraints STAGE_3_CONSTRAINTS = new Constraints(STAGE_1_MAX_SPEED, STAGE_1_MAX_ACCEL);
+        public static final Constraints STAGE_3_CONSTRAINTS = new Constraints(STAGE_3_MAX_SPEED, STAGE_3_MAX_ACCEL);
     }
 
     public static double changeScope(double angle) {
