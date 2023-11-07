@@ -64,7 +64,12 @@ public class moveToPosition {
                 controller.yIZone(yKi, controller.getPoseError().getY(), -0.5, 0.5);
                 controller.thetaIZone(thetaKi, controller.getPoseError().getRotation().getDegrees(), -5, 5);
 
-                setDesiredStates.accept( controller.calculateWithFF( currentPose.get() ) );
+                setDesiredStates.accept( 
+                    controller.calculateWithFF( 
+                        currentPose.get(),
+                        0.07, 1,
+                        0.07, 1,
+                        1.0, 1 ) );
 
                 field.getObject( "Setpoint" ).setPose( controller.getPositionSetpoint() );
                 Telemetry.getValue("PathPlanner/AtGoal", controller.atGoal() );
