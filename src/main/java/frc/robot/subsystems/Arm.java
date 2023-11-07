@@ -32,33 +32,35 @@ public class Arm extends SubsystemBase {
     private CANSparkMax m_stage1;
     private CANSparkMax m_stage2;
     private CANSparkMax m_stage3;
+
     private DutyCycleEncoder m_stage1Encoder;  
     private DutyCycleEncoder m_stage2Encoder;
     private DutyCycleEncoder m_stage3Encoder;
+
     private ProfiledPIDController m_stage1PID;
     private ProfiledPIDController m_stage2PID;
     private ProfiledPIDController m_stage3PID;
-    private PinchersofPower m_clawSubsystem;
-    private ButtonBoard m_copilotController;
-    private double m_stage1Target = idlePosition.getStage1Angle();
-    private double m_stage2Target = idlePosition.getStage2Angle();
-    private double m_stage3Target = idlePosition.getStage3Angle();
-    // manual targets actually unused
-    private double m_manualTargetX = 0;
-    private double m_manualTargetY = 0;
-    private double m_manualTargetTheta = 0;
-    private HashMap<positions, ArmPosition> positionMap = new HashMap<positions, ArmPosition>();
-    private boolean movingToIdle = false;
-    public positions target = positions.Idle;
+
     private ArmFeedforward m_stage1FF;
     private ArmFeedforward m_stage2FF;
     private ArmFeedforward m_stage3FF;
 
+    private PinchersofPower m_clawSubsystem;
+    private ButtonBoard m_copilotController;
+
+    public positions target = positions.Idle;
+    private double m_stage1Target = idlePosition.getStage1Angle();
+    private double m_stage2Target = idlePosition.getStage2Angle();
+    private double m_stage3Target = idlePosition.getStage3Angle();
+
+    private HashMap<positions, ArmPosition> positionMap = new HashMap<positions, ArmPosition>();
+    private boolean movingToIdle = false;
+
     private double tempThetaSpeed = THETA_SPEED;
 
-    private double stage1 = 0;
-    private double stage2 = 0;
-    private double stage3 = 0;
+    private double stage1 = idlePosition.getStage1Angle();
+    private double stage2 = idlePosition.getStage2Angle();
+    private double stage3 = idlePosition.getStage3Angle();
 
     public Arm(PinchersofPower m_claw, ButtonBoard copilotController) {
         positionMap.put(positions.ScoreHighCone, scoreHighConePosition);
@@ -108,61 +110,25 @@ public class Arm extends SubsystemBase {
         resetProfiles();
 
         m_copilotController.button(10).whileTrue(new RepeatCommand( new InstantCommand(() -> {
-            if (m_copilotController.getRawButton(9)) {
-                m_manualTargetTheta += THETA_SPEED;
-                stage3 += THETA_SPEED;
-            }
+            if (RobotContainer.isManual()) stage3 += THETA_SPEED;
         })));
         m_copilotController.button(11).whileTrue(new RepeatCommand( new InstantCommand(() -> {
-            if (m_copilotController.getRawButton(9)) {
-                m_manualTargetTheta -= THETA_SPEED;
-                stage3 -= THETA_SPEED;
-            }
+            if (RobotContainer.isManual()) stage3 -= THETA_SPEED;
         })));
     }
 
-    private double[] inverseKinematics (double x, double y, double theta) {
-        double[] output = new double[3];
-
-        double l1 = STAGE_1_LENGTH;
-        double l2 = STAGE_2_LENGTH;
-        double l3 = Math.hypot(x, y);
-        double thetaA = Math.toDegrees(Math.acos((l2*l2-l1*l1-l3*l3)/(-2*l1*l3)));
-        double thetaB = Math.toDegrees(Math.acos((l3*l3-l1*l1-l2*l2)/(-2*l1*l2)));
-
-        output[0] = (360 + Math.toDegrees(Math.atan2(y, x)) + thetaA) % 360;
-        output[1] = (360 + output[0] + thetaB + 180) % 360;
-        output[2] = (360 + theta) % 360;
-
-        if ( y >= 20 || x > 49.0 || Double.isNaN(output[0]) || 
-            Double.isNaN(output[1]) || Double.isNaN(output[2])) output = getCurrentPoint();
-
-        return output;
-    }
-
-    private void moveToPoint (double x, double y, double theta) {
+    private void moveToPoint () {
         stage1 += m_copilotController.getJoystick().getY()*tempThetaSpeed;
         stage2 += m_copilotController.getJoystick().getX()*tempThetaSpeed;
         if (tempThetaSpeed != THETA_SPEED && m_copilotController.getJoystick().getNorm() != 0) tempThetaSpeed = THETA_SPEED;
         moveToAngles(stage1, stage2, stage3);
     }
 
-    private double[] forwardKinematics ( double stage1Degrees, double stage2Degrees, double stage3Degrees ) {
-        double[] output = new double[3];
-        output[0] = Math.cos(Math.toRadians(stage1Degrees)) * STAGE_1_LENGTH + Math.cos(Math.toRadians(stage2Degrees)) * (STAGE_2_LENGTH);
-        output[1] = Math.sin(Math.toRadians(stage1Degrees)) * STAGE_1_LENGTH + Math.sin(Math.toRadians(stage2Degrees)) * (STAGE_2_LENGTH);
-        output[2] = (360 + stage3Degrees) % 360;
-        return output;
-    }
-
     private double[] getCurrentPoint () {
-        return forwardKinematics(m_stage1Encoder.getAbsolutePosition()*360 - STAGE_1_OFFSET, m_stage2Encoder.getAbsolutePosition()*360-STAGE_2_OFFSET, m_stage3Encoder.getAbsolutePosition()*360-STAGE_3_OFFSET);
+        return ArmPosition.forwardKinematics(m_stage1Encoder.getAbsolutePosition()*360 - STAGE_1_OFFSET, m_stage2Encoder.getAbsolutePosition()*360-STAGE_2_OFFSET, m_stage3Encoder.getAbsolutePosition()*360-STAGE_3_OFFSET);
     }
 
     private void moveToAngles (double stage1Angle, double stage2Angle, double stage3Angle) {
-        m_manualTargetX = forwardKinematics((stage1Angle - STAGE_1_OFFSET)%360, (stage2Angle - STAGE_2_OFFSET)%360, stage3Angle - STAGE_3_OFFSET)[0];
-        m_manualTargetY = forwardKinematics((stage1Angle - STAGE_1_OFFSET)%360, (stage2Angle - STAGE_2_OFFSET)%360, stage3Angle - STAGE_3_OFFSET)[1];
-        m_manualTargetTheta = stage3Angle - STAGE_3_OFFSET;
         setStage1Target(stage1Angle % 360);
         setStage2Target(stage2Angle % 360);
         setStage3Target(stage3Angle % 360);
@@ -254,11 +220,7 @@ public class Arm extends SubsystemBase {
     public Command moveToPointCommand () {
         return new FunctionalCommand(
             () -> RobotContainer.setCopilotLEDs(), 
-            () -> {
-                m_manualTargetX += m_copilotController.getJoystick().getX() * X_SPEED;
-                m_manualTargetY += m_copilotController.getJoystick().getY() * Y_SPEED;
-                moveToPoint(m_manualTargetX, m_manualTargetY, m_manualTargetTheta);
-            },
+            () -> moveToPoint(),
             interrupted -> {},
             () -> true,
             this
@@ -271,9 +233,6 @@ public class Arm extends SubsystemBase {
             stage1 = m_stage1Encoder.getAbsolutePosition()*360;
             stage2 = m_stage2Encoder.getAbsolutePosition()*360;
             stage3 = m_stage3Encoder.getAbsolutePosition()*360;
-            m_manualTargetX = getCurrentPoint()[0];
-            m_manualTargetY = getCurrentPoint()[1];
-            m_manualTargetTheta = getCurrentPoint()[2];
         });
     }
 
@@ -299,11 +258,6 @@ public class Arm extends SubsystemBase {
         Telemetry.setValue("Arm/currentPoint/x", getCurrentPoint()[0]);
         Telemetry.setValue("Arm/currentPoint/y", getCurrentPoint()[1]);
         Telemetry.setValue("Arm/currentPoint/theta", getCurrentPoint()[2]);
-        Telemetry.setValue("Arm/manualTarget/manualTargetX", m_manualTargetX);
-        Telemetry.setValue("Arm/manualTarget/manualTargetY", m_manualTargetY);
-        Telemetry.setValue("Arm/manualTarget/manualTargetTheta", m_manualTargetTheta);
-        double[] telemetryConversion = inverseKinematics(m_manualTargetX, m_manualTargetY, m_manualTargetTheta);
-        Telemetry.setValue("Arm/manualTarget/manualTargetFK", forwardKinematics(telemetryConversion[0], telemetryConversion[1], telemetryConversion[2]));
         Telemetry.armTelemetry(m_stage1, m_stage1Encoder, STAGE_1_OFFSET, "stage1");
         Telemetry.setValue("Arm/stage1/targetPosition", m_stage1Target);
         Telemetry.armTelemetry(m_stage2, m_stage2Encoder, STAGE_2_OFFSET, "stage2");
