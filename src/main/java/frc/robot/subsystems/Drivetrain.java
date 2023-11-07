@@ -109,7 +109,6 @@ public class Drivetrain extends SubsystemBase {
     for(int i = 0; i < swerveModules.length; i++) swerveModules[i].telemetry();
     gyro.periodic();
 
-    ///////////// Pose \\\\\\\\\\\\\\\\\
     _robotPose = odometry.update(gyro.getRotation2d(), getSwerveModulePositions());
     vision.addVisionMeasurement( odometry );
     forwardKinematics = SimpleUtils.transformToChassisSpeeds( _robotPose.minus( _lastPose ).div( 0.02 ) );
@@ -124,32 +123,30 @@ public class Drivetrain extends SubsystemBase {
   }
 
   ///////////////////////////////////// DRIVE FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-  public void joystickDrive(double LX, double LY, double RX) {
-    m_chassisSpeeds = SimpleUtils.discretize( new ChassisSpeeds(
+  public void joystickDrive( double LX, double LY, double RX ) {
+    m_chassisSpeeds = new ChassisSpeeds(
       LY * MAX_LINEAR_SPEED, 
      -LX * MAX_LINEAR_SPEED, 
-     -RX * MAX_ROTATION_SPEED ) );
-
+     -RX * MAX_ROTATION_SPEED );
     if ( !isRobotOriented ) 
       m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( m_chassisSpeeds, gyro.getAllianceRotation2d() );
-
-    moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
     setDesiredStates();
   }
 
   // For autonomous
   public void driveFromModuleStates ( SwerveModuleState[] modules ) {
-    moduleStates = kinematics.toSwerveModuleStates( SimpleUtils.discretize( kinematics.toChassisSpeeds( modules ) ) );
+    m_chassisSpeeds = kinematics.toChassisSpeeds( modules );
     setDesiredStates();
   }
 
-  public void driveFromChassisSpeeds (ChassisSpeeds speeds) {
-    m_chassisSpeeds = SimpleUtils.discretize( ChassisSpeeds.fromFieldRelativeSpeeds( speeds, gyro.getRotation2d() ) );
-    moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
+  public void driveFromChassisSpeeds ( ChassisSpeeds speeds ) {
+    m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( speeds, gyro.getRotation2d() );
     setDesiredStates();
   }
 
   public void setDesiredStates() { 
+    m_chassisSpeeds = SimpleUtils.discretize( m_chassisSpeeds );
+    moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
     SwerveDriveKinematics.desaturateWheelSpeeds( moduleStates, MAX_LINEAR_SPEED );
     for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( moduleStates[i] );
   }
@@ -161,9 +158,9 @@ public class Drivetrain extends SubsystemBase {
 
   public void stopModules () { for(int i = 0; i <= 3; i++) swerveModules[i].stopMotors(); }
 
-  public void noShwerve () { shwerveDrive.set(0); }
+  public void noShwerve () { shwerveDrive.stopMotor(); }
 
-  //////////////////////////////////////// AUTO-ALIGNMENT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+  //////////////////////////////////////// AUTO-ALIGNMENT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   public Command moveToPositionCommand (BooleanSupplier coneOrCube) {
     Pose2d actualPose = _robotPose; 
 
@@ -285,21 +282,12 @@ public class Drivetrain extends SubsystemBase {
           new InstantCommand( () -> stopModules() ));
       }
       try {
-        return new SwerveAutoBuilder(
-          this::getPose,
-          this::resetPose,
-          kinematics,
-          _translationPID,
-          _rotationPID,
-          this::driveFromModuleStates,
-          eventMap,
-          true,
-          this
-          ).fullAuto( PathPlanner.loadPathGroup(
+        return new SwerveAutoBuilder( this::getPose, this::resetPose, kinematics,
+          _translationPID, _rotationPID, this::driveFromModuleStates, eventMap,
+          true, this).fullAuto( PathPlanner.loadPathGroup(
             Telemetry.getValue("general/autonomous/selectedRoutine", "dontMove"),
             PathPlanner.getConstraintsFromPath(
               Telemetry.getValue("general/autonomous/selectedRoutine", "Mobility") ) ) );
-
       } catch (Exception e) {
         DriverStation.reportError("it crashed LOL " + e.getLocalizedMessage(), true);
         return backUp;
