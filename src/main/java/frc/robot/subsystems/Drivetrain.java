@@ -14,7 +14,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -34,7 +33,6 @@ import frc.lib.SimpleUtils;
 import frc.lib.SwerveModule;
 import frc.lib.Telemetry;
 
-import frc.robot.commands.HolonomicController;
 import frc.robot.commands.moveToPosition;
 import frc.robot.RobotContainer;
 
@@ -211,31 +209,6 @@ public class Drivetrain extends SubsystemBase {
         generateAlignmentController() ));
 
     return commands;
-  }
-
-  public HolonomicController generateAlignmentController() {
-    HolonomicController controller = new HolonomicController(
-      new ProfiledPIDController(
-        _alignXKp, 
-        _alignXKi,
-        _alignXKd,
-        _XConstraints), 
-      new ProfiledPIDController(
-        _alignYKp, 
-        _alignYKi,
-        _alignYKd,
-        _YConstraints), 
-      new ProfiledPIDController(
-        _alignRotationKp, 
-        _alignRotationKi,
-        _alignRotationKd,
-        _rotConstraints) );
-    
-    controller.xControllerIRange(-0.75, 0.75);
-    controller.yControllerIRange(-0.5, 0.5);
-    controller.thetaControllerIRange(-8.5, 8.5);
-
-    return controller;
   }
 
   private void loadRedWayPoints() {

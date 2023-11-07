@@ -4,6 +4,7 @@ import frc.lib.ArmPosition;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import frc.robot.commands.HolonomicController;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -14,6 +15,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import com.pathplanner.lib.auto.PIDConstants;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 
 public final class Constants {
     public class PWM {
@@ -164,6 +166,31 @@ public final class Constants {
         public static final double leftChargeLine = 11.2;
 
         public static final Field2d field2d = new Field2d();
+
+        public static HolonomicController generateAlignmentController() {
+            HolonomicController controller = new HolonomicController(
+              new ProfiledPIDController(
+                _alignXKp, 
+                _alignXKi,
+                _alignXKd,
+                _XConstraints), 
+              new ProfiledPIDController(
+                _alignYKp, 
+                _alignYKi,
+                _alignYKd,
+                _YConstraints), 
+              new ProfiledPIDController(
+                _alignRotationKp, 
+                _alignRotationKi,
+                _alignRotationKd,
+                _rotConstraints) );
+            
+            controller.xControllerIRange(-0.75, 0.75);
+            controller.yControllerIRange(-0.5, 0.5);
+            controller.thetaControllerIRange(-8.5, 8.5);
+        
+            return controller;
+          }
     }
 
     public static class LL {
