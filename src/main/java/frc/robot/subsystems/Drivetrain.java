@@ -122,40 +122,80 @@ public class Drivetrain extends SubsystemBase {
     }
 
   ///////////////////////////////////// DRIVE FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    public void joystickDrive( double LX, double LY, double RX ) {
-        m_chassisSpeeds = new ChassisSpeeds(
-           LY * MAX_LINEAR_SPEED, 
-          -LX * MAX_LINEAR_SPEED, 
-          -RX * MAX_ROTATION_SPEED );
-        if ( !isRobotOriented ) 
-            m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( m_chassisSpeeds, gyro.getAllianceRotation2d() );
-        setDesiredStates();
-    }
+    // public void joystickDrive( double LX, double LY, double RX ) {
+    //     m_chassisSpeeds = new ChassisSpeeds(
+    //        LY * MAX_LINEAR_SPEED, 
+    //       -LX * MAX_LINEAR_SPEED, 
+    //       -RX * MAX_ROTATION_SPEED );
+    //     if ( !isRobotOriented ) 
+    //         m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( m_chassisSpeeds, gyro.getAllianceRotation2d() );
+    //     setDesiredStates();
+    // }
 
-    // For autonomous
-    public void driveFromModuleStates ( SwerveModuleState[] modules ) {
-        m_chassisSpeeds = kinematics.toChassisSpeeds( modules );
-        setDesiredStates();
-    }
+    // // For autonomous
+    // public void driveFromModuleStates ( SwerveModuleState[] modules ) {
+    //     m_chassisSpeeds = kinematics.toChassisSpeeds( modules );
+    //     setDesiredStates();
+    // }
 
-    public void driveFromChassisSpeeds ( ChassisSpeeds speeds ) {
-        m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( speeds, gyro.getRotation2d() );
-        setDesiredStates();
-    }
+    // public void driveFromChassisSpeeds ( ChassisSpeeds speeds ) {
+    //     m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( speeds, gyro.getRotation2d() );
+    //     setDesiredStates();
+    // }
 
-    public void setDesiredStates() { 
+    // public void setDesiredStates() { 
+    //     m_chassisSpeeds = SimpleUtils.discretize( m_chassisSpeeds );
+    //     moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
+    //     SwerveDriveKinematics.desaturateWheelSpeeds( moduleStates, MAX_LINEAR_SPEED );
+    //     for(int i = 0; i <= 3; i++) { 
+    //         swerveModules[i].setDesiredState( moduleStates[i] );
+    //         System.out.println( moduleStates.toString() + i);
+    //     }
+    // }
+
+    public void joystickDrive(double LX, double LY, double RX) {
+        if ( !isRobotOriented ) m_chassisSpeeds = 
+          ChassisSpeeds.fromFieldRelativeSpeeds(
+            LY * MAX_LINEAR_SPEED,
+            -LX * MAX_LINEAR_SPEED,
+            -RX * MAX_ROTATION_SPEED, 
+            odometry.getEstimatedPosition().getRotation().plus(Rotation2d.fromDegrees(
+              (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) ? 180 : 0 ) ) );
+    
+        else m_chassisSpeeds = new ChassisSpeeds(LY * MAX_LINEAR_SPEED, -LX * MAX_LINEAR_SPEED, -RX * MAX_ROTATION_SPEED);
+    
         m_chassisSpeeds = SimpleUtils.discretize( m_chassisSpeeds );
         moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
-        SwerveDriveKinematics.desaturateWheelSpeeds( moduleStates, MAX_LINEAR_SPEED );
-        for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( moduleStates[i] );
-    }
+    
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_LINEAR_SPEED);
+        setDesiredStates();
+      }
+    
+      // For autonomous
+      public void driveFromModuleStates ( SwerveModuleState[] modules ) {
+        modules = kinematics.toSwerveModuleStates( SimpleUtils.discretize( kinematics.toChassisSpeeds(modules) ) );
+        SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
+        setDesiredStates();
+      }
+    
+      public void driveFromChassisSpeeds (ChassisSpeeds speeds) {
+        speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+          speeds, odometry.getEstimatedPosition().getRotation() );
+    
+        moduleStates = kinematics.toSwerveModuleStates( speeds );
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_LINEAR_SPEED);
+        setDesiredStates();
+      }
+    
+      public void stopModules () { for(int i = 0; i <= 3; i++) swerveModules[i].stopMotors(); }
+    
+      public void setDesiredStates() { for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( moduleStates[i] ); }
+    
 
     public void shwerve ( double LX, double LY ) {
         if (isRobotOriented) shwerveDrive.set( MathUtil.clamp( -LX * 9, -1, 1 ) );
         else noShwerve();
     }
-
-    public void stopModules () { for(int i = 0; i <= 3; i++) swerveModules[i].stopMotors(); }
 
     public void noShwerve () { shwerveDrive.stopMotor(); }
 
