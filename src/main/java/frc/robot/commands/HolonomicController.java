@@ -147,14 +147,24 @@ public class HolonomicController {
     }
 
     public ChassisSpeeds calculateWithFF(Pose2d robotPose) {
+        return calculateWithFF(robotPose, 0, 1, 0, 1, 0, 1);
+    }
+
+    public ChassisSpeeds calculateWithFF(Pose2d robotPose, double xKs, double xkV, 
+        double yKs, double ykV, double thetaKs, double thetakV) {
 
         ChassisSpeeds speeds = new ChassisSpeeds(
             xController.calculate( robotPose.getX() )
-            + xController.getSetpoint().velocity,
+            + ( (xController.getSetpoint().velocity  * xkV) + 
+                ( xKs * Math.signum( xController.getSetpoint().velocity) ) ),
+
             yController.calculate( robotPose.getY() )
-            + yController.getSetpoint().velocity,
-            thetaController.calculate( robotPose.getRotation().getRadians()
-            + thetaController.getSetpoint().velocity ) );
+            + ( ( (yController.getSetpoint().velocity  * ykV) ) + 
+                ( yKs * Math.signum( yController.getSetpoint().velocity ) ) ),
+
+            thetaController.calculate( robotPose.getRotation().getRadians() )
+            + ((thetaController.getSetpoint().velocity * thetakV) + 
+                ( thetaKs * Math.signum( thetaController.getSetpoint().velocity) ) ) );
         
         Telemetry.setValue("ALIGNMENT/XOUTPUT", speeds.vxMetersPerSecond);
         Telemetry.setValue("ALIGNMENT/YOUTPUT", speeds.vyMetersPerSecond);
@@ -228,17 +238,28 @@ public class HolonomicController {
         thetaController.setIntegratorRange( lowerBound, higherBound );
     }
 
+    public void xIZone(double kI, double measure, double range) {
+        xIZone(kI, measure, -range, range);
+    }
+
+    public void yIZone(double kI, double measure, double range) {
+        yIZone(kI, measure, -range, range);
+    }
+    public void thetaIZone(double kI, double measure, double range) {
+        thetaIZone(kI, measure, -range, range);;
+    }
+
     public void xIZone(double kI, double measure, double min, double max) {
         if((measure < max) || (measure > min)) xController.setI(kI);
         else xController.setI(0);
     }
 
     public void yIZone(double kI, double measure, double min, double max) {
-        if((measure < max) || (measure > min)) xController.setI(kI);
+        if((measure < max) || (measure > min)) yController.setI(kI);
         else yController.setI(0);
     }
     public void thetaIZone(double kI, double measure, double min, double max) {
-        if((measure < max) || (measure > min)) xController.setI(kI);
+        if((measure < max) || (measure > min)) thetaController.setI(kI);
         else thetaController.setI(0);
     }
 

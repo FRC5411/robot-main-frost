@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import frc.lib.Telemetry;
 import frc.robot.subsystems.Drivetrain;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Constants.DRIVETRAIN;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
@@ -15,21 +16,21 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import frc.lib.SimpleUtils;
-
 public class moveToPosition {
     private Supplier<Pose2d> currentPose;
     private Supplier<ChassisSpeeds> currentChassisSpeeds;
     private Consumer<ChassisSpeeds> setDesiredStates;
+    private Field2d field;
     private Drivetrain requirements;
     private Pose2d target = new Pose2d();
 
     public moveToPosition( 
         Supplier<Pose2d> curPoseSupplier, Supplier<ChassisSpeeds> curSpeedSupplier, 
-        Consumer<ChassisSpeeds> setDesiredStates, Drivetrain requirements) {
+        Consumer<ChassisSpeeds> setDesiredStates, Field2d field, Drivetrain requirements) {
         currentPose = curPoseSupplier;
         currentChassisSpeeds = curSpeedSupplier;
         this.setDesiredStates = setDesiredStates;
+        this.field = field;
         this.requirements = requirements;
     }
 
@@ -56,18 +57,16 @@ public class moveToPosition {
                 controller.reset( currentPose.get(), currentChassisSpeeds.get() );
                 controller.setGoal(targetPose, targetChassisSpeeds);
                 
-                DRIVETRAIN.field2d.getObject( "Goal" ).setPose( controller.getPositionGoal() );
+                field.getObject( "Goal" ).setPose( controller.getPositionGoal() );
             },
             () -> {
                 controller.xIZone(xKi, controller.getPoseError().getX(), -0.5, 0.5);
                 controller.yIZone(yKi, controller.getPoseError().getY(), -0.5, 0.5);
                 controller.thetaIZone(thetaKi, controller.getPoseError().getRotation().getDegrees(), -5, 5);
 
-                setDesiredStates.accept(
-                    SimpleUtils.discretize( 
-                        controller.calculateWithFF( currentPose.get() ) ) );
+                setDesiredStates.accept( controller.calculateWithFF( currentPose.get() ) );
 
-                DRIVETRAIN.field2d.getObject( "Setpoint" ).setPose( controller.getPositionSetpoint() );
+                field.getObject( "Setpoint" ).setPose( controller.getPositionSetpoint() );
                 Telemetry.getValue("PathPlanner/AtGoal", controller.atGoal() );
             }, 
             (interrupted) -> { requirements.joystickDrive(0, 0, 0); }, 

@@ -93,6 +93,7 @@ public class Drivetrain extends SubsystemBase {
       this::getPose,
       this::getChassisSpeeds,
       this::driveFromChassisSpeeds,
+      field2d,
       this );
 
     PathPlannerServer.startServer(6969);
