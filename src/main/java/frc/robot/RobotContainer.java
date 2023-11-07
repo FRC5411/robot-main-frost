@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import frc.lib.ButtonBoard;
+import frc.lib.Pigeon;
 import frc.lib.Telemetry;
 
 import frc.robot.Constants.ARM.positions;
@@ -21,7 +22,6 @@ import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.PinchersofPower;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.PinchersofPower.GamePieces;

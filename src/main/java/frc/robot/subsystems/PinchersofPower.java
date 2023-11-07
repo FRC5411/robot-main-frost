@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Compressor;
@@ -13,7 +12,7 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.lib.FrostConfigs;
 import frc.lib.Telemetry;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -41,30 +40,12 @@ public class PinchersofPower extends SubsystemBase  {
 
     m_cone = true;
 
-    spinner.restoreFactoryDefaults();
-    spinner2.restoreFactoryDefaults();
-
-    spinner.clearFaults();
-    spinner2.clearFaults();
-
-    spinner.setIdleMode(IdleMode.kBrake);
-    spinner2.setIdleMode(IdleMode.kBrake);
-
-    spinner.setSmartCurrentLimit(20);
-    spinner2.setSmartCurrentLimit(20);
-
-    spinner2.setInverted(true);
-
-    spinner.setCANTimeout(20);
-    spinner2.setCANTimeout(20);
-
-    spinner.burnFlash();
-    spinner2.burnFlash();
+    FrostConfigs.configIntakeMotor(spinner, false);
+    FrostConfigs.configIntakeMotor(spinner2, true);
   }
 
   public boolean getPiece(){
-    if(limitSwitch.get()) return true;
-    return false;
+    return !limitSwitch.get();
   }
 
   public void closeGrip() {
@@ -159,7 +140,7 @@ public class PinchersofPower extends SubsystemBase  {
       default:
           spinSlow();
           return false;
-  }
+    }
   }
 
   @Override
@@ -168,27 +149,22 @@ public class PinchersofPower extends SubsystemBase  {
       spinner.set(intakeSpeed);
       spinner2.set(intakeSpeed);
 
-      if ( !limitSwitch.get() && (m_container.m_arm.target == positions.Substation || m_container.m_arm.target == positions.Floor) && m_cone && !RobotContainer.copilotController.getRawButton(15) ) {
-        closeGrip();
-      }
-    } else {
+      if ( getPiece() && (m_container.m_arm.target == positions.Substation || m_container.m_arm.target == positions.Floor) 
+          && m_cone && !RobotContainer.copilotController.getRawButton(15) ) closeGrip();
+      else {
       // prevent CAN timeouts when disabled, actual motor stoppage is handled at a lower level
       spinner.set(0);
       spinner2.set(0);
+      }
     }
 
-    intakeMotorTelemetry("leftMotor", spinner);
-    intakeMotorTelemetry("rightMotor", spinner2);
+    Telemetry.intakeMotorTelemetry("leftMotor", spinner);
+    Telemetry.intakeMotorTelemetry("rightMotor", spinner2);
     
-    Telemetry.setValue("Pincher/limitSwitch", !limitSwitch.get());
+    Telemetry.setValue("Pincher/limitSwitch", getPiece());
     Telemetry.setValue("Pincher/piston", pusher.get() == DoubleSolenoid.Value.kForward ? "Forward" : "Reverse");
     Telemetry.setValue("Pincher/compressor/pressure", comp.getPressure());
   }
 
-  public void intakeMotorTelemetry(String key, CANSparkMax motor) {
-    Telemetry.setValue("Pincher/"+key+"/setpoint", motor.get());
-    Telemetry.setValue("Pincher/"+key+"/temperature", motor.getMotorTemperature());
-    Telemetry.setValue("Pincher/"+key+"/outputVoltage", motor.getAppliedOutput());
-    Telemetry.setValue("Pincher/"+key+"/statorcurrent", motor.getOutputCurrent());
-  }
+
 }

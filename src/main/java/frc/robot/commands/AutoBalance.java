@@ -3,8 +3,8 @@ package frc.robot.commands;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
+import frc.lib.Pigeon;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Pigeon;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:

@@ -91,4 +91,14 @@ public class FrostConfigs {
         motor.setSecondaryCurrentLimit(40);
         motor.burnFlash();
     }
+
+    public static void configIntakeMotor(CANSparkMax motor, boolean invert) {
+        motor.restoreFactoryDefaults();
+        motor.clearFaults();
+        motor.setIdleMode(IdleMode.kBrake);
+        motor.setInverted(invert);
+        motor.setSmartCurrentLimit(20);
+        motor.setCANTimeout(20);
+        motor.burnFlash();
+    }
 }

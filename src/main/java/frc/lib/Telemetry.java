@@ -87,4 +87,11 @@ public class Telemetry {
         Telemetry.setValue("Arm/"+key+"/actualPosition", encoder.getAbsolutePosition() * 360);
         Telemetry.setValue("Arm/"+key+"/actualPositionOffset", encoder.getAbsolutePosition() * 360 - offset);
     }
+
+    public static void intakeMotorTelemetry(String key, CANSparkMax motor) {
+        Telemetry.setValue("Pincher/"+key+"/setpoint", motor.get());
+        Telemetry.setValue("Pincher/"+key+"/temperature", motor.getMotorTemperature());
+        Telemetry.setValue("Pincher/"+key+"/outputVoltage", motor.getAppliedOutput());
+        Telemetry.setValue("Pincher/"+key+"/statorcurrent", motor.getOutputCurrent());
+      }
 }
