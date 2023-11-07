@@ -55,6 +55,7 @@ public class Arm extends SubsystemBase {
 
     private HashMap<positions, ArmPosition> positionMap = new HashMap<positions, ArmPosition>();
     private boolean movingToIdle = false;
+    private boolean returnToIdle = true;
 
     private double tempThetaSpeed = THETA_SPEED;
 
@@ -243,7 +244,8 @@ public class Arm extends SubsystemBase {
                 if (RobotContainer.isManual()) moveToPointCommand().schedule();
                 else {
                     if (DriverStation.isAutonomous()) return;
-                    moveToPositionCommand(positions.Idle).schedule();
+                    if(returnToIdle) moveToPositionCommand(positions.Idle).schedule();
+                    else moveToPositionCommand(positions.IdleShootPosition).schedule();
                 }
             }, 
             (interrupted) -> {},

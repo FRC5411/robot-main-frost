@@ -76,12 +76,13 @@ public class Drivetrain extends SubsystemBase {
         };
 
         vision = new VisionSubsystem();
-        gyro = new Pigeon();
+        gyro   = new Pigeon();
 
-        m_chassisSpeeds = new ChassisSpeeds();
+        m_chassisSpeeds   = new ChassisSpeeds();
         forwardKinematics = new ChassisSpeeds();
-        moduleStates = new SwerveModuleState[4];
-        modulePoses  = new SwerveModulePosition[4];
+        moduleStates      = new SwerveModuleState[4];
+        modulePoses       = new SwerveModulePosition[4];
+		
         odometry = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), getSwerveModulePositions(), _robotPose);
 
         _coneWaypoints = new ArrayList<Pose2d>();
@@ -119,7 +120,7 @@ public class Drivetrain extends SubsystemBase {
         field2d.setRobotPose(_robotPose);
         SmartDashboard.putData(field2d);
     }
-    
+
   ///////////////////////////////////// DRIVE FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     public void joystickDrive( double LX, double LY, double RX ) {
         m_chassisSpeeds = new ChassisSpeeds(
