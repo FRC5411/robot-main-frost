@@ -119,8 +119,6 @@ public class PinchersofPower extends SubsystemBase  {
     }
   }
 
-  
-
   public Command intakeCommand() {
     return new InstantCommand(() -> intake(), this);
   }
@@ -137,7 +135,32 @@ public class PinchersofPower extends SubsystemBase  {
     });
   }
 
-  public Command spinOffCommand() { return new InstantCommand(() -> spinOff(), this); }
+  public Command spinOffCommand() { 
+    return new InstantCommand(() -> spinOff(), this); 
+  }
+
+  public boolean setClawState(positions position) {
+    switch (position) {
+      case ScoreHighCone:
+      case ScoreHighCube:
+      case ScoreMidCone:
+      case ScoreMidCube:
+      case ScoreLow:
+        return false;
+      case Floor:
+      case FloorAlt:
+      case Substation:
+        spinIn();
+        openGrip();
+        return false;
+      case Idle:
+          spinSlow();
+          return false;
+      default:
+          spinSlow();
+          return false;
+  }
+  }
 
   @Override
   public void periodic() {

@@ -130,10 +130,8 @@ public class Drivetrain extends SubsystemBase {
      -LX * MAX_LINEAR_SPEED, 
      -RX * MAX_ROTATION_SPEED ) );
 
-    if ( !isRobotOriented )
-      m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-        m_chassisSpeeds, gyro.getRotation2d().plus(Rotation2d.fromDegrees(
-          (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) ? 180 : 0 ) ) );
+    if ( !isRobotOriented ) 
+      m_chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds( m_chassisSpeeds, gyro.getAllianceRotation2d() );
 
     moduleStates = kinematics.toSwerveModuleStates( m_chassisSpeeds );
     setDesiredStates();
@@ -156,9 +154,8 @@ public class Drivetrain extends SubsystemBase {
     for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( moduleStates[i] );
   }
 
-  public void shwerve ( double LX, double LY) {
-    // 6in diameter wheels, 10:1 gearbox
-    if (isRobotOriented) shwerveDrive.set(MathUtil.clamp(-LX * 9, -1, 1));
+  public void shwerve ( double LX, double LY ) {
+    if (isRobotOriented) shwerveDrive.set( MathUtil.clamp( -LX * 9, -1, 1 ) );
     else noShwerve();
   }
 
@@ -173,8 +170,6 @@ public class Drivetrain extends SubsystemBase {
     Pose2d closest = actualPose.nearest( coneOrCube.getAsBoolean() ? _coneWaypoints : _cubeWaypoints );
     if (closest == null) return new InstantCommand();
 
-    SimpleUtils.poseToTelemetry(actualPose, "Align/startPose");
-    SimpleUtils.poseToTelemetry(closest, "Align/choosenWaypoint");
     if(_robotPose.getX() >= 14.05 || _robotPose.getX() < 8) return pathToCommand( closest );
     return pathToCommand( _moveToPosition.optimizeWaypoints( closest ) );
   }
@@ -185,20 +180,19 @@ public class Drivetrain extends SubsystemBase {
       target.getY(), 
       target.getRotation() );
 
-    field2d.getObject("targetEdge").setPose(edgePose);
+    field2d.getObject("edgeTarget").setPose(edgePose);
     field2d.getObject("target").setPose(target);
 
     return new SequentialCommandGroup(
       _moveToPosition.generateMoveToPositionCommandTimed(
         edgePose,
-        new ChassisSpeeds(0.75, 0.0, 0.0),
         defaultTolerance,
         _holonomicConstraints,
         generateAlignmentController() ),
       _moveToPosition.generateMoveToPositionCommand( 
         target,
         new Pose2d(), 
-        generateAlignmentController() ));
+        generateAlignmentController() ) );
   }
 
   public Command pathToCommand( List<Pose2d> waypoints ) {
@@ -208,7 +202,7 @@ public class Drivetrain extends SubsystemBase {
     for(int i = 0; i < waypoints.size() - 1; i++) {
       commands.addCommands(
         _moveToPosition.generateMoveToPositionCommandTimed(
-          waypoints.get(i),
+          waypoints.get( i ),
           defaultTolerance,
           _holonomicConstraints,
           generateAlignmentController() ) );
@@ -216,7 +210,7 @@ public class Drivetrain extends SubsystemBase {
 
     commands.addCommands(
       _moveToPosition.generateMoveToPositionCommand(
-        waypoints.get(waypoints.size() - 1 ),
+        waypoints.get( waypoints.size() - 1 ),
         new Pose2d(), 
         generateAlignmentController() ));
 

@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.ArmPosition;
 import frc.lib.ButtonBoard;
@@ -53,11 +52,9 @@ public class Arm extends SubsystemBase {
     private ArmFeedforward m_stage1FF;
     private ArmFeedforward m_stage2FF;
     private ArmFeedforward m_stage3FF;
-    private boolean returnToIdle = true;
 
     private double tempThetaSpeed = THETA_SPEED;
 
-    private final boolean IS_E_HAPPY = true;
     private double stage1 = 0;
     private double stage2 = 0;
     private double stage3 = 0;
@@ -156,28 +153,17 @@ public class Arm extends SubsystemBase {
         output[1] = (360 + output[0] + thetaB + 180) % 360;
         output[2] = (360 + theta) % 360;
 
-        if ( y >= 20 || x > 49.0 || output[0] != output[0] || output[1] != output[1] || output[2] != output[2])  {
-            output = getCurrentPoint();
-        }
+        if ( y >= 20 || x > 49.0 || Double.isNaN(output[0]) || 
+            Double.isNaN(output[1]) || Double.isNaN(output[2])) output = getCurrentPoint();
 
         return output;
     }
 
     private void moveToPoint (double x, double y, double theta) {
-        if (IS_E_HAPPY) {
-            stage1 += m_copilotController.getJoystick().getY()*tempThetaSpeed;
-            stage2 += m_copilotController.getJoystick().getX()*tempThetaSpeed;
-            if (tempThetaSpeed != THETA_SPEED && m_copilotController.getJoystick().getNorm() != 0) tempThetaSpeed = THETA_SPEED;
-            moveToAngles(stage1, stage2, stage3);
-            return;
-        }
-        double[] thetas = inverseKinematics(x, y, theta);
-        moveToAngles(thetas[0] + STAGE_1_OFFSET, thetas[1] + STAGE_2_OFFSET, thetas[2] + STAGE_3_OFFSET);
-    }
-
-    public void toggleIdle () {
-        returnToIdle = !returnToIdle;
-        defaultCommand().schedule();
+        stage1 += m_copilotController.getJoystick().getY()*tempThetaSpeed;
+        stage2 += m_copilotController.getJoystick().getX()*tempThetaSpeed;
+        if (tempThetaSpeed != THETA_SPEED && m_copilotController.getJoystick().getNorm() != 0) tempThetaSpeed = THETA_SPEED;
+        moveToAngles(stage1, stage2, stage3);
     }
 
     private double[] forwardKinematics ( double stage1Degrees, double stage2Degrees, double stage3Degrees ) {
@@ -214,19 +200,10 @@ public class Arm extends SubsystemBase {
     }
 
     public Boolean isAtTarget () {
-        if (RobotContainer.copilotController.getRawButton(9)) {
-            return (
-                Math.abs(getCurrentPoint()[0] - m_manualTargetX) < JOINT_COORDINATE_DEADZONE &&
-                Math.abs(getCurrentPoint()[1] - m_manualTargetY) < JOINT_COORDINATE_DEADZONE &&
-                Math.abs(getCurrentPoint()[2] - m_manualTargetTheta) < JOINT_COORDINATE_DEADZONE
-            );
-        } else {
             return (
                 Math.abs(m_stage1Encoder.getAbsolutePosition()*360 - m_stage1Target) < JOINT_ANGLE_DEADZONE &&
                 Math.abs(m_stage2Encoder.getAbsolutePosition()*360 - m_stage2Target) < JOINT_ANGLE_DEADZONE &&
-                Math.abs(m_stage3Encoder.getAbsolutePosition()*360 - m_stage3Target) < JOINT_ANGLE_DEADZONE
-            );
-        }
+                Math.abs(m_stage3Encoder.getAbsolutePosition()*360 - m_stage3Target) < JOINT_ANGLE_DEADZONE );
     }
 
     public void setStage1Target(double angle) {
@@ -270,78 +247,13 @@ public class Arm extends SubsystemBase {
     public Command moveToPositionCommand (positions position) {
         return new FunctionalCommand(
             () -> {
-                boolean dip = (position == positions.DipHighCone) || (position == positions.DipMidCone);
-                if(!dip) resetProfiles();
-                if (!m_copilotController.getRawButton(9)) {
-                    m_copilotController.setLED(10, false);
-                    m_copilotController.setLED(11, false);
-                    m_copilotController.setLED(12, false);
-                    m_copilotController.setLED(13, false);
-                    m_copilotController.setLED(14, false);
-                    m_copilotController.setLED(0, true);
-                    m_copilotController.setLED(1, true);
-                    m_copilotController.setLED(2, true);
-                    m_copilotController.setLED(3, true);
-                    m_copilotController.setLED(4, true);
-                    m_copilotController.setLED(5, true);
-                    m_copilotController.setLED(6, true);
-                } else {
-                    m_copilotController.setLED(10, true);
-                    m_copilotController.setLED(11, true);
-                    m_copilotController.setLED(12, true);
-                    m_copilotController.setLED(13, true);
-                    m_copilotController.setLED(14, true);
-                    m_copilotController.setLED(0, false);
-                    m_copilotController.setLED(1, false);
-                    m_copilotController.setLED(2, false);
-                    m_copilotController.setLED(3, false);
-                    m_copilotController.setLED(4, false);
-                    m_copilotController.setLED(5, false);
-                    m_copilotController.setLED(6, false);
-                }
-        
-                switch (position) {
-                    case ScoreHighCone:
-                        break;
-                    case ScoreHighCube:
-                        break;
-                    case ScoreMidCone:
-                        break;
-                    case ScoreMidCube:
-                        break;
-                    case ScoreLow:
-                        break;
-                    case Floor:
-                        m_clawSubsystem.spinIn();
-                        m_clawSubsystem.openGrip();
-                        break;
-                    case FloorAlt:
-                        m_clawSubsystem.spinIn();
-                        m_clawSubsystem.openGrip();
-                        break;
-                    case Substation:
-                        m_clawSubsystem.spinIn();
-                        m_clawSubsystem.openGrip();
-                        break;
-                    case Idle:
-                        movingToIdle = true;
-                        m_clawSubsystem.spinSlow();
-                        break;
-                    default:
-                        m_clawSubsystem.spinSlow();
-                        break;
-                }
+                if(!(position == positions.DipHighCone) || (position == positions.DipMidCone)) resetProfiles();
+                RobotContainer.setCopilotLEDs();
+                movingToIdle = m_clawSubsystem.setClawState(position);
             }, 
-            () -> {
-                moveToPosition(position);
-            
-            }, 
-            interrupted -> {
-                movingToIdle = false;
-            },
-            () -> {
-                return false;
-            },
+            () -> moveToPosition(position), 
+            interrupted -> { movingToIdle = false; },
+            () -> false,
             this
         );
     }
@@ -349,100 +261,27 @@ public class Arm extends SubsystemBase {
     public Command moveToPositionTerminatingCommand( positions position ) {
         return new FunctionalCommand(
             () -> {
-                resetProfiles();
-                if (!m_copilotController.getRawButton(9)) {
-                    m_copilotController.setLED(10, false);
-                    m_copilotController.setLED(11, false);
-                    m_copilotController.setLED(12, false);
-                    m_copilotController.setLED(13, false);
-                    m_copilotController.setLED(14, false);
-                }
-                m_copilotController.setLED(0, false);
-                m_copilotController.setLED(1, false);
-                m_copilotController.setLED(2, false);
-                m_copilotController.setLED(3, false);
-                m_copilotController.setLED(4, false);
-                m_copilotController.setLED(5, false);
-        
-                switch (position) {
-                    case ScoreHighCone:
-                        break;
-                    case ScoreHighCube:
-                        break;
-                    case ScoreMidCone:
-                        break;
-                    case ScoreMidCube:
-                        break;
-                    case ScoreLow:
-                        break;
-                    case Floor:
-                        m_clawSubsystem.spinIn();
-                        m_clawSubsystem.openGrip();
-                        break;
-                    case FloorAlt:
-                        m_clawSubsystem.spinIn();
-                        m_clawSubsystem.openGrip();
-                        break;
-                    case Substation:
-                        m_clawSubsystem.spinIn();
-                        m_clawSubsystem.openGrip();
-                        break;
-                    case Idle:
-                        movingToIdle = true;
-                        m_clawSubsystem.spinSlow();
-                        break;
-                    default:
-                        m_clawSubsystem.spinSlow();
-                        break;
-                }
+                if(!(position == positions.DipHighCone) || (position == positions.DipMidCone)) resetProfiles();
+                RobotContainer.setCopilotLEDs();
+                movingToIdle = m_clawSubsystem.setClawState(position);
             }, 
-            () -> {
-                moveToPosition(position);
-            
-            }, 
-            interrupted -> { // when should the command do when it ends?
-                movingToIdle = false;
-            },
-            () -> { // should the command end?
-                return this.isAtTarget();
-            },
+            () -> moveToPosition(position), 
+            interrupted -> { movingToIdle = false; },
+            this::isAtTarget,
             this
         );
     }
 
     public Command moveToPointCommand () {
         return new FunctionalCommand(
-            () -> {
-                m_copilotController.setLED(0, false);
-                m_copilotController.setLED(1, false);
-                m_copilotController.setLED(2, false);
-                m_copilotController.setLED(3, false);
-                m_copilotController.setLED(4, false);
-                m_copilotController.setLED(5, false);
-                m_copilotController.setLED(6, false);
-                m_copilotController.setLED(7, false);
-                m_copilotController.setLED(8, false);
-
-                m_copilotController.setLED(10, true);
-                m_copilotController.setLED(11, true);
-                m_copilotController.setLED(12, true);
-                m_copilotController.setLED(13, true);
-                m_copilotController.setLED(14, true);
-            }, 
+            () -> RobotContainer.setCopilotLEDs(), 
             () -> {
                 m_manualTargetX += m_copilotController.getJoystick().getX() * X_SPEED;
                 m_manualTargetY += m_copilotController.getJoystick().getY() * Y_SPEED;
                 moveToPoint(m_manualTargetX, m_manualTargetY, m_manualTargetTheta);
-            }, 
-
-            interrupted -> {
-                if (!interrupted) {
-                    // arm is in position
-                }
             },
-            () -> {
-                return true;
-            },
+            interrupted -> {},
+            () -> true,
             this
         );
     }
@@ -456,7 +295,6 @@ public class Arm extends SubsystemBase {
             m_manualTargetX = getCurrentPoint()[0];
             m_manualTargetY = getCurrentPoint()[1];
             m_manualTargetTheta = getCurrentPoint()[2];
-
         });
     }
 
@@ -464,24 +302,20 @@ public class Arm extends SubsystemBase {
         return new FunctionalCommand(
             () -> {},
             () -> {
-                if (RobotContainer.copilotController.getRawButton(9)) {
-                    moveToPointCommand().schedule();
-                } else {
+                if (RobotContainer.isManual()) moveToPointCommand().schedule();
+                else {
                     if (DriverStation.isAutonomous()) return;
-                    if (returnToIdle) {
-                        moveToPositionCommand(positions.Idle).schedule();
-                    } else {
-                        moveToPositionCommand(positions.IdleShootPosition).schedule();
-                    }
+                    moveToPositionCommand(positions.Idle).schedule();
                 }
             }, 
             (interrupted) -> {},
             () -> false, 
-            (Subsystem) this
+            this
         );
     }
 
-    @Override  public void periodic() {
+    @Override  
+    public void periodic() {
         Telemetry.setValue("Arm/targetPosition", target.name());
         Telemetry.setValue("Arm/currentPoint/x", getCurrentPoint()[0]);
         Telemetry.setValue("Arm/currentPoint/y", getCurrentPoint()[1]);

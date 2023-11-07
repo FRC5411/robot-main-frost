@@ -98,12 +98,8 @@ public class RobotContainer {
     copilotController.button(6).onTrue(new SequentialCommandGroup((m_claw.outTakeCommand()), new WaitCommand(0.25), m_arm.moveToPositionCommand(positions.Idle)));
     copilotController.button(6).onFalse(m_claw.spinOffCommand());
 
-    copilotController.button(8).onTrue(m_LEDs.turnYellow().alongWith(new InstantCommand( () -> m_claw.setMode(GamePieces.Cone))).alongWith(new InstantCommand( () -> m_claw.setCone(true)).alongWith(new InstantCommand( () -> {copilotController.setLED(7, false);copilotController.setLED(8, true);}))));
-    copilotController.button(7).onTrue(m_LEDs.turnPurple().alongWith(new InstantCommand( () -> m_claw.setMode(GamePieces.Cube))).alongWith(new InstantCommand( () -> m_claw.setCone(false)).alongWith(new InstantCommand( () -> {copilotController.setLED(7, true);copilotController.setLED(8, false);}))));
-    copilotController.button(8).onTrue(new InstantCommand( () -> m_claw.setCone(true)));
-    copilotController.button(7).onTrue(new InstantCommand( () -> m_claw.setCone(false)));
-
-    copilotController.button(6).onFalse(m_claw.spinOffCommand());
+    copilotController.button(7).onTrue(setGamePiece(GamePieces.Cube));
+    copilotController.button(8).onTrue(setGamePiece(GamePieces.Cone));
 
     copilotController.button(9).onTrue(m_arm.defaultCommand().alongWith(m_arm.onManual()));
     copilotController.button(9).onFalse(m_arm.defaultCommand());
@@ -132,7 +128,6 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    
     HashMap<String, Command> eventMap = new HashMap<>();
     eventMap.put("marker1", new PrintCommand("Passed marker 1"));
     eventMap.put("placeHighCone", m_arm.goToScoreHigh().withTimeout(1.5));
@@ -157,10 +152,42 @@ public class RobotContainer {
   }
 
   public static DriverStation.Alliance getDriverAlliance() {
-    // What to do for competition
-    //return DriverStation.getAlliance();
-
-    // What to do for testing
     return DriverStation.getAlliance();
+  }
+
+  public static boolean isManual() {
+    return copilotController.getRawButton(9);
+  }
+
+  public Command setGamePiece(GamePieces GP) {
+    boolean isCone = GP.equals(GamePieces.Cone);
+    Command updateMode = new InstantCommand( () -> {
+      m_claw.setMode(GP);
+      m_claw.setCone(isCone);
+      copilotController.setLED(7, !isCone);
+      copilotController.setLED(8, isCone);
+    });
+
+    if(isCone) return m_LEDs.turnYellow().alongWith(updateMode);
+    else return m_LEDs.turnPurple().alongWith(updateMode);
+  }
+
+  public static void setCopilotLEDs() {
+    if (!DriverStation.isAutonomous()) {
+      setManualLEDs(isManual());
+      setAutoLEDs(!isManual());
+    }
+    else {
+      setManualLEDs(false);
+      setAutoLEDs(false);
+    }
+  }
+
+  public static void setManualLEDs(boolean isOn) {
+    for(int i = 0; i <= 6; i++ ) copilotController.setLED(i, isOn);
+  }
+
+  public static void setAutoLEDs(boolean isOn) {
+    for(int i = 10; i <= 14; i++) copilotController.setLED(i, isOn);
   }
 }

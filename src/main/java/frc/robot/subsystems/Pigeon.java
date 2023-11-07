@@ -8,6 +8,8 @@ import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import static frc.robot.Constants.CAN.PIGEON_ID;
+import edu.wpi.first.wpilibj.DriverStation;
+
 import frc.lib.Telemetry;
 
 public class Pigeon {
@@ -33,6 +35,11 @@ public class Pigeon {
 
   public Rotation2d getRotation2d() {
     return Rotation2d.fromDegrees(getYaw());
+  }
+
+  public Rotation2d getAllianceRotation2d() {
+    return getRotation2d().plus( Rotation2d.fromDegrees(
+      ( DriverStation.getAlliance().equals( DriverStation.Alliance.Red ) ) ? 180 : 0 ) );
   }
 
   public double getPitch () {

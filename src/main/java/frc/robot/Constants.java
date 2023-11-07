@@ -2,6 +2,7 @@ package frc.robot;
 
 import frc.lib.ArmPosition;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
@@ -63,10 +64,12 @@ public final class Constants {
         public static final double ROBOT_WIDTH_METERS = 0.6858;
         // wheel diameter (meters)
         public static final double WHEEL_DIAMETER_METERS = 0.1016;
+        public static final double SHWERVE_WHEEL_DIAMETER_METERS = Units.inchesToMeters(6.0);
         public static final double WHEEL_PERIMETER_METERS = WHEEL_DIAMETER_METERS * Math.PI;
         
         public static final double DRIVE_GEAR_RATIO = 6.75;
         public static final double AZIMUTH_GEAR_RATIO = 12.8;
+        public static final double SHWERVE_GEAR_RATIO = 10.0;
 
         public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
             new Translation2d(  ROBOT_WIDTH_METERS / 2,  ROBOT_WIDTH_METERS / 2 ),
