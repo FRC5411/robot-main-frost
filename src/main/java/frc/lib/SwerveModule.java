@@ -7,6 +7,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.geometry.Rotation2d;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import edu.wpi.first.math.MathUtil;
 import static frc.robot.Constants.DRIVETRAIN.*;
 
 public class SwerveModule {
@@ -63,9 +64,10 @@ public class SwerveModule {
             ? angleEncoder.getAbsolutePosition() : desiredState.angle.getDegrees();
 
         angleMotor.set(
-            ControlMode.PercentOutput, 
-            angleController.calculate(angleEncoder.getAbsolutePosition(), angleDegrees) 
-            + kF * Math.signum(angleController.getPositionError()));
+            ControlMode.PercentOutput,
+            MathUtil.clamp(
+                angleController.calculate(angleEncoder.getAbsolutePosition(), angleDegrees) 
+                + kF * Math.signum(angleController.getPositionError()), -1, 1));
         // angleMotor.set(ControlMode.Position, angleDegrees);
     }
 

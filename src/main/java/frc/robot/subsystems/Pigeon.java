@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.CAN.PIGEON_ID;
 import frc.lib.Telemetry;
@@ -29,7 +28,6 @@ public class Pigeon extends SubsystemBase {
   }
 
   public double getYaw() {
-    if(DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) return (yaw + 180) % 360;
     return yaw % 360;
   }
 

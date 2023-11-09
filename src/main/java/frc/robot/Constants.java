@@ -73,8 +73,8 @@ public final class Constants {
         public static final double AZIMUTH_GEAR_RATIO = 12.8;
 
         // encoder offsets (degrees)
-        public static final double FL_ECODER_OFFSET = -313.506;// + 0.5;
-        public static final double FR_ECODER_OFFSET = -69.082;// + 0.5;
+        public static final double FL_ECODER_OFFSET = -313.506 + 0.5;
+        public static final double FR_ECODER_OFFSET = -69.082 + 0.5;
         public static final double BL_ECODER_OFFSET = -45.791 + 180;
         public static final double BR_ECODER_OFFSET = -257.783;
 
@@ -90,7 +90,7 @@ public final class Constants {
                                                        // rylan: 0.65
         public static final double AZIMUTH_kD = 0.000265;// 0.000275;//0.0003;//0.0004;//0.0005;//0.0006;//0.0006125;//0.0006125//0.000625//0.00065//0.0006;//0.00055//0.0005;//0.002//0.001//0.00075
                                                          // //0.0005;//0.00025
-        public static final double AZIMUTH_kF = 0.05;// 0.05
+        public static final double AZIMUTH_kF = 0.04;// 0.05
         public static final double AZIMUTH_DEADBAND = 0.06;// 0.1;//0.06;//0.075over slop;//0.1Over slop//0.05 under
                                                            // slop
 

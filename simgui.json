@@ -97,15 +97,11 @@
           "autonomous": {
             "open": true
           }
-        },
-        "open": true
+        }
       }
     }
   },
   "NetworkTables Info": {
-    "Clients": {
-      "open": true
-    },
     "Connections": {
       "open": true
     },
@@ -129,7 +125,6 @@
     },
     "Server": {
       "open": true
-    },
-    "visible": true
+    }
   }
 }

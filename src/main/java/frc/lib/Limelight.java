@@ -74,5 +74,7 @@ public class Limelight {
     frc.lib.Telemetry.setValue("R"+key+"/Odometry/X", getPose().getX());
     frc.lib.Telemetry.setValue("R"+key+"/Odometry/Y", getPose().getY());
     frc.lib.Telemetry.setValue("R"+key+"/Odometry/Rotation", getPose().getRotation().getDegrees());
+    frc.lib.Telemetry.setValue("R"+key+"/Odometry/Norm", getTarget().getTranslation().getNorm());
+
   }
 }

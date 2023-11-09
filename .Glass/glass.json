@@ -9,9 +9,11 @@
       "limelight": {
         "open": true
       },
+      "limelight-limetwo": {
+        "open": true
+      },
       "telemetry": {
         "Arm": {
-          "open": true,
           "stage1": {
             "open": true
           },
@@ -57,11 +59,14 @@
             "open": true
           }
         },
-        "drivetrain": {
-          "Align": {
+        "Rlimelight-limetwo": {
+          "Odometry": {
             "open": true
           },
-          "PathPlanner": {
+          "open": true
+        },
+        "drivetrain": {
+          "Align": {
             "open": true
           },
           "chassis": {
@@ -104,7 +109,8 @@
               "open": true
             },
             "open": true
-          }
+          },
+          "open": true
         },
         "general": {
           "autonomous": {
