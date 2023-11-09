@@ -36,7 +36,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -59,6 +58,9 @@ import frc.robot.commands.HolonomicController;
 import frc.robot.commands.moveToPosition;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
 import frc.robot.RobotContainer;
+
+import frc.lib.SProfilePIDController;
+import frc.lib.SProfile.Constraints;
 
 public class Drivetrain extends SubsystemBase {
   private Pigeon m_gyro;
@@ -159,9 +161,9 @@ public class Drivetrain extends SubsystemBase {
 
   private moveToPosition _moveToPosition;
   
-  private Constraints _tranYConstraints = new Constraints(4, 6);
-  private Constraints _tranXConstraints = new Constraints(3, 5);
-  private Constraints _rotConstraints = new Constraints(360, 240);
+  private Constraints _tranYConstraints = new Constraints(4, 6, 0.1);
+  private Constraints _tranXConstraints = new Constraints(3, 5, 0.1);
+  private Constraints _rotConstraints = new Constraints(360, 240, 0.1);
 
   private HolonomicConstraints _holonomicConstraints = 
     new HolonomicConstraints(_tranXConstraints, _tranYConstraints, _rotConstraints);
@@ -451,17 +453,17 @@ public class Drivetrain extends SubsystemBase {
 
   public HolonomicController generateAlignmentController() {
     HolonomicController controller = new HolonomicController(
-      new ProfiledPIDController(
+      new SProfilePIDController(
         _alignXTranslationKp, 
         _alignXTranslationKi,
         _alignXTranslationKd,
         _tranXConstraints), 
-      new ProfiledPIDController(
+      new SProfilePIDController(
         _alignYTranslationKp, 
         _alignYTranslationKi,
         _alignYTranslationKd,
         _tranYConstraints), 
-      new ProfiledPIDController(
+      new SProfilePIDController(
         _alignRotationKp, 
         _alignRotationKi,
         _alignRotationKd,

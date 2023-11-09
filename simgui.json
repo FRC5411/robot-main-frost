@@ -46,9 +46,6 @@
     },
     "transitory": {
       "SmartDashboard": {
-        "Field": {
-          "open": true
-        },
         "PPSwerveControllerCommand": {
           "open": true
         },
@@ -62,6 +59,9 @@
         },
         "drivetrain": {
           "PathPlanner": {
+            "open": true
+          },
+          "chassis": {
             "open": true
           },
           "gyro": {
@@ -97,7 +97,8 @@
           "autonomous": {
             "open": true
           }
-        }
+        },
+        "open": true
       }
     }
   },

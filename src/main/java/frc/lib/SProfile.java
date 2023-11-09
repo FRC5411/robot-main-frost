@@ -49,6 +49,7 @@ public class SProfile {
   private double tAccel;
   private double tVelocity;
 
+  private double totalTime;
   private double t1;
   private double t2;
   private double t3;
@@ -135,6 +136,12 @@ public class SProfile {
     t5 = tVelocity + tJerk;
     t6 = tVelocity + tAccel;
     t7 = tVelocity + tJerk + tAccel;
+
+    this.totalTime = 0;
+  }
+
+  public void setTotalTime(double time) {
+    this.totalTime = time;
   }
 
   /**
@@ -200,6 +207,13 @@ public class SProfile {
     }
 
     return direct(result);
+  }
+
+  public State calculateRecursive(double step) {
+    totalTime += step;
+
+
+    return direct(calculate(totalTime));
   }
 
 

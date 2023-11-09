@@ -20,6 +20,7 @@ public class SProfilePIDController implements Sendable {
   private SProfile.State m_goal = new SProfile.State();
   private SProfile.State m_setpoint = new SProfile.State();
   private SProfile.Constraints m_constraints;
+  private SProfile m_profile;
 
   /**
    * Allocates a ProfilePIDController with the given constants for Kp, Ki, and Kd.
@@ -47,6 +48,7 @@ public class SProfilePIDController implements Sendable {
       double Kp, double Ki, double Kd, SProfile.Constraints constraints, double period) {
     m_controller = new PIDController(Kp, Ki, Kd, period);
     m_constraints = constraints;
+    m_profile = new SProfile(m_constraints, new SProfile.State());
     instances++;
 
     SendableRegistry.add(this, "ProfilePIDController", instances);
@@ -307,8 +309,9 @@ public class SProfilePIDController implements Sendable {
       m_setpoint.position = setpointMinDistance + measurement;
     }
 
-    var profile = new SProfile(m_constraints, m_goal, m_setpoint);
-    m_setpoint = profile.calculate(getPeriod());
+    // var profile = new SProfile(m_constraints, m_goal, m_setpoint);
+    
+    m_setpoint = m_profile.calculateRecursive(getPeriod());
     return m_controller.calculate(measurement, m_setpoint.position);
   }
 
@@ -357,6 +360,7 @@ public class SProfilePIDController implements Sendable {
    */
   public void reset(SProfile.State measurement) {
     m_controller.reset();
+    
     m_setpoint = measurement;
   }
 
