@@ -34,6 +34,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
@@ -123,7 +124,8 @@ public class Drivetrain extends SubsystemBase {
       40, 
       0.2);
 
-  private static SwerveDrivePoseEstimator m_odometry;
+  private static SwerveDrivePoseEstimator m_poseEstimator;
+  private static SwerveDriveOdometry m_Odometry;
 
   private List<Pose2d> _coneWaypoints = new ArrayList<Pose2d>();
   private List<Pose2d> _cubeWaypoints = new ArrayList<Pose2d>();
@@ -132,9 +134,9 @@ public class Drivetrain extends SubsystemBase {
   private Pose2d _lastPose = _robotPose;
 
   private double downChargeLine = 1.0;
-  private double upChargeLine = 4.5;
+  private double upChargeLine = 4.9;
   private double rightChargeLine = 14.05;
-  private double leftChargeLine = 11.2;
+  private double leftChargeLine = 11.0;
 
   private double _translationKp = 2.40;// 2.35//1.8;//3.25;//2.75;//2.5;//2.1;//2;//0.018;//0.03;//0.004 0.001
   private double _translationKi = 0;
@@ -143,9 +145,9 @@ public class Drivetrain extends SubsystemBase {
   private double _rotationKi = 0;
   private double _rotationKd = 0.085; // 0.1
 
-  private double _alignXTranslationKp = 3.0;//5.5;//5; //5.5;
-  private double _alignXTranslationKi = 0.12;//0.1;//0.;
-  private double _alignXTranslationKd = 0.03;//0.05;
+  private double _alignXTranslationKp = 3.1;//5.5;//5; //5.5;
+  private double _alignXTranslationKi = 0.17;//0.1;//0.;
+  private double _alignXTranslationKd = 0.018;//0.05;
 
   private double _alignYTranslationKp = 2.5;//2.2;//3.1; //5.5;
   private double _alignYTranslationKi = 0.05; //0.01;//0.;
@@ -199,7 +201,13 @@ public class Drivetrain extends SubsystemBase {
     swerveModules[2] = new SwerveModule( BL_Drive, BL_Azimuth, BL_Position, BL_PID, BL_kF, "BL" );
     swerveModules[3] = new SwerveModule( BR_Drive, BR_Azimuth, BR_Position, BR_PID, BR_kF, "BR" );
 
-    m_odometry = new SwerveDrivePoseEstimator(
+    m_poseEstimator = new SwerveDrivePoseEstimator(
+      m_kinematics, 
+      new Rotation2d(0), 
+      getSwerveModulePositions(), 
+      new Pose2d());
+
+    m_Odometry = new SwerveDriveOdometry(
       m_kinematics, 
       new Rotation2d(0), 
       getSwerveModulePositions(), 
@@ -221,18 +229,18 @@ public class Drivetrain extends SubsystemBase {
    if (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Red)) {
       _coneWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
       _coneWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
-      _coneWaypoints.add(new Pose2d(14.75, 4.98, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 3.94 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 3.38 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 2.28 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.75, 1.67, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.76, 0.48, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.80, 4.98, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.80, 3.94 - 0.05, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.80, 3.38 - 0.05, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.80, 2.28 - 0.05, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.80, 1.67, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.80, 0.48, new Rotation2d()));
 
       _cubeWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
       _cubeWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
-      _cubeWaypoints.add(new Pose2d(14.75, 1.13 - 0.05, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(14.75, 2.95 - 0.05, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(14.75, 4.52 - 0.05, new Rotation2d()));
+      _cubeWaypoints.add(new Pose2d(14.80, 1.13 - 0.05, new Rotation2d()));
+      _cubeWaypoints.add(new Pose2d(14.80, 2.95 - 0.05, new Rotation2d()));
+      _cubeWaypoints.add(new Pose2d(14.80, 4.52 - 0.05, new Rotation2d()));
     } else if (DriverStation.getAlliance().equals(DriverStation.Alliance.Blue)) {
       _coneWaypoints.add(new Pose2d(15.79, 7.33, new Rotation2d(0)));
       _coneWaypoints.add(new Pose2d(15.79, 6.00, new Rotation2d(0)));
@@ -279,16 +287,16 @@ public class Drivetrain extends SubsystemBase {
   public void robotPositionTelemetry() {
     if ( deb.calculate( vision.getCenterLimelight().hasTarget() ) ) {
       System.out.println("MY FATHER" + Timer.getFPGATimestamp());
-      m_odometry.addVisionMeasurement(
+      m_poseEstimator.addVisionMeasurement(
         vision.getCenterLimelight().getPose(), 
         Timer.getFPGATimestamp() - vision.getCenterLimelight().getLatency(),
         VecBuilder.fill(
-          3.1 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 
-          3.1 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 10000000) );
+          3.8 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 
+          3.8 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 10000000) );
     }
 
     // System.out.println("MY MOTHER" + Timer.getFPGATimestamp());
-    _robotPose = m_odometry.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions());
+    _robotPose = m_poseEstimator.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions());
 
     Transform2d transform = _robotPose.minus(_lastPose).div(0.02);
 
@@ -298,6 +306,7 @@ public class Drivetrain extends SubsystemBase {
       transform.getRotation().getDegrees() );
 
     poseToTelemetry( _robotPose, "/chassis/" );
+    poseToTelemetry(m_Odometry.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions()), "/chassisOdometry/");
     Telemetry.setValue("drivetrain/chassis/robot/forwardSpeed", forwardKinematics.vxMetersPerSecond);
     Telemetry.setValue("drivetrain/chassis/robot/rightwardSpeed", forwardKinematics.vyMetersPerSecond);
     Telemetry.setValue("drivetrain/chassis/clockwiseSpeed", Math.toDegrees(forwardKinematics.omegaRadiansPerSecond));
@@ -305,6 +314,8 @@ public class Drivetrain extends SubsystemBase {
     _lastPose = _robotPose;
 
     field2d.setRobotPose(_robotPose);
+    field2d.getObject("Pure Odometry").setPose(m_Odometry.getPoseMeters());
+    field2d.getObject("Pure Camera").setPose(vision.getCenterLimelight().getPose());
     SmartDashboard.putData(field2d);    
   }
 
@@ -314,7 +325,7 @@ public class Drivetrain extends SubsystemBase {
         LY * MAX_LINEAR_SPEED,
         -LX * MAX_LINEAR_SPEED,
         -RX * MAX_ROTATION_SPEED, 
-        m_odometry.getEstimatedPosition().getRotation().plus(Rotation2d.fromDegrees(
+        m_poseEstimator.getEstimatedPosition().getRotation().plus(Rotation2d.fromDegrees(
           (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) ? 180 : 0 ) ) );
 
     else m_chassisSpeeds = new ChassisSpeeds(LY * MAX_LINEAR_SPEED, -LX * MAX_LINEAR_SPEED, -RX * MAX_ROTATION_SPEED);
@@ -335,7 +346,7 @@ public class Drivetrain extends SubsystemBase {
 
   public void driveFromChassisSpeeds (ChassisSpeeds speeds) {
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-      speeds, m_odometry.getEstimatedPosition().getRotation() );
+      speeds, m_poseEstimator.getEstimatedPosition().getRotation() );
 
     modules = m_kinematics.toSwerveModuleStates( speeds );
     SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
@@ -347,7 +358,7 @@ public class Drivetrain extends SubsystemBase {
   public void setDesiredStates() { for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( modules[i] ); }
 
   public void shwerve ( double LX, double LY) {
-    // 6in diameter wheels, 10:1 gearbox
+    // 6in diameter wheels, 10:1 o
     if (isRobotOriented) shwerveDrive.set(MathUtil.clamp(-LX*9, -1, 1));
     else noShwerve();
   }
@@ -412,7 +423,7 @@ public class Drivetrain extends SubsystemBase {
   public Command pathToCommand (Pose2d target) {
     Command toAlign = _moveToPosition.generateMoveToPositionCommandTimed(
       new Pose2d(
-        m_odometry.getEstimatedPosition().getX(), 
+        m_poseEstimator.getEstimatedPosition().getX(), 
         target.getY(), 
         target.getRotation() ),
       new Pose2d( 0.1, 0.1, Rotation2d.fromDegrees(3) ),
@@ -536,7 +547,7 @@ public class Drivetrain extends SubsystemBase {
       eventMap.put("wait", new WaitCommand(0.75));
 
       SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-        () -> m_odometry.getEstimatedPosition(),
+        () -> m_poseEstimator.getEstimatedPosition(),
         this::resetPose,
         m_kinematics,
         new PIDConstants(_translationKp, _translationKi, _translationKd),
@@ -563,7 +574,12 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void resetPose(Pose2d pose) {
-    m_odometry.resetPosition(
+    m_poseEstimator.resetPosition(
+      Rotation2d.fromDegrees( m_gyro.getYaw() ), 
+      getSwerveModulePositions(), 
+      pose);
+
+    m_Odometry.resetPosition(
       Rotation2d.fromDegrees( m_gyro.getYaw() ), 
       getSwerveModulePositions(), 
       pose);

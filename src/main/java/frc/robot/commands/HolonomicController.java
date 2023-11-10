@@ -152,7 +152,7 @@ public class HolonomicController {
 
         ChassisSpeeds speeds = new ChassisSpeeds(
             xController.calculate( robotPose.getX() )
-            + xController.getSetpoint().velocity * xkV + xkS * Math.signum(xController.getSetpoint().velocity),
+            + xController.getSetpoint().velocity * xkV + xkS * Math.signum(xController.getSetpoint().velocity) + 0.1,
             yController.calculate( robotPose.getY() )
             + yController.getSetpoint().velocity * ykV + ykS * Math.signum(yController.getSetpoint().velocity),
             thetaController.calculate( robotPose.getRotation().getRadians()
@@ -230,7 +230,7 @@ public class HolonomicController {
         thetaController.setIntegratorRange( lowerBound, higherBound );
     }
 
-    public void xIZone(double kI, double min, double max) {
+    public void xIZone(double kI, double error, double min, double max) {
         if((xController.getPositionError() < max) || (xController.getPositionError() > min)) xController.setI(kI);
         else xController.setI(0);
     }

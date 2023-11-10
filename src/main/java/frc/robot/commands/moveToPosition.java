@@ -55,7 +55,7 @@ public class moveToPosition {
                 requirements.field2d.getObject( "Goal" ).setPose( controller.getPositionGoal() );
             },
             () -> {
-                controller.xIZone(xKi, -1, 1);
+                controller.xIZone(xKi, Math.abs(target.getX() - currentPose.get().getX()), -1, 1);
                 controller.yIZone(yKi, -0.5, 0.5);
                 controller.thetaIZone(thetaKi, -5, 5);
 
@@ -63,7 +63,7 @@ public class moveToPosition {
                     discretize( 
                         controller.calculateWithFF( 
                             currentPose.get(),
-                            0.09, 1.2,
+                            0.13, 1.25,
                             0.0, 1.02,
                             3) ) );
 
@@ -88,7 +88,7 @@ public class moveToPosition {
         Pose2d tolerance,  HolonomicConstraints profiles, HolonomicController controller) {
         Telemetry.setValue("Alignment/MOM", profiles.getLongestTime(targetPose, targetChassisSpeeds));
         return generateMoveToPositionCommand(targetPose, targetChassisSpeeds, tolerance, controller)
-            .withTimeout(profiles.getLongestTime(targetPose, targetChassisSpeeds));
+            .withTimeout(profiles.getLongestTime(targetPose, targetChassisSpeeds) + 0.5);
     }
 
     public ChassisSpeeds discretize(ChassisSpeeds speeds) {

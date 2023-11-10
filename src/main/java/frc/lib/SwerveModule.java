@@ -88,8 +88,8 @@ public class SwerveModule {
 
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
-            (driveMotor.getSelectedSensorPosition() * WHEEL_PERIMETER_METERS)
-            / (2048 * DRIVE_GEAR_RATIO), 
+            0.94 * ((driveMotor.getSelectedSensorPosition() * WHEEL_PERIMETER_METERS)
+            / (2048 * DRIVE_GEAR_RATIO)), 
             Rotation2d.fromDegrees(angleEncoder.getAbsolutePosition()));
     }
 
