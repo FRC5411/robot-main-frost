@@ -2,16 +2,15 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.lib;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.math.geometry.Rotation2d;
 import static frc.robot.Constants.CAN.PIGEON_ID;
-import frc.lib.Telemetry;
+import edu.wpi.first.wpilibj.DriverStation;
 
-public class Pigeon extends SubsystemBase {
+public class Pigeon {
   private Pigeon2 pigeon;
 
   private double yaw = 0;
@@ -29,8 +28,16 @@ public class Pigeon extends SubsystemBase {
   }
 
   public double getYaw() {
-    if(DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) return (yaw + 180) % 360;
     return yaw % 360;
+  }
+
+  public Rotation2d getRotation2d() {
+    return Rotation2d.fromDegrees(getYaw());
+  }
+
+  public Rotation2d getAllianceRotation2d() {
+    return getRotation2d().plus( Rotation2d.fromDegrees(
+      ( DriverStation.getAlliance().equals( DriverStation.Alliance.Red ) ) ? 180 : 0 ) );
   }
 
   public double getPitch () {
@@ -49,7 +56,6 @@ public class Pigeon extends SubsystemBase {
     pigeon.setYaw(0);
   }
 
-  @Override
   public void periodic() {
     yaw = pigeon.getYaw() % 360;
     pitch = pigeon.getPitch();
@@ -61,7 +67,4 @@ public class Pigeon extends SubsystemBase {
     Telemetry.setValue("drivetrain/gyro/roll", roll);
     Telemetry.setValue("drivetrain/gyro/pitch", pitch);
   }
-
-  @Override
-  public void simulationPeriodic() {}
 }

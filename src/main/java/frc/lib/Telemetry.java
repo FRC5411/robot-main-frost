@@ -1,6 +1,10 @@
 package frc.lib;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+
+import com.revrobotics.CANSparkMax;
+
 import edu.wpi.first.networktables.NetworkTable;
 
 /*
@@ -74,4 +78,20 @@ public class Telemetry {
     public static void flushTable () {
         NetworkTableInstance.getDefault().flush();
     }
+
+    public static void armTelemetry(CANSparkMax motor, DutyCycleEncoder encoder, double offset, String key) {
+        Telemetry.setValue("Arm/"+key+"/setpoint", motor.get());
+        Telemetry.setValue("Arm/"+key+"/temperature", motor.getMotorTemperature());
+        Telemetry.setValue("Arm/"+key+"/outputVoltage", motor.getAppliedOutput());
+        Telemetry.setValue("Arm/"+key+"/statorCurrent", motor.getOutputCurrent());
+        Telemetry.setValue("Arm/"+key+"/actualPosition", encoder.getAbsolutePosition() * 360);
+        Telemetry.setValue("Arm/"+key+"/actualPositionOffset", encoder.getAbsolutePosition() * 360 - offset);
+    }
+
+    public static void intakeMotorTelemetry(String key, CANSparkMax motor) {
+        Telemetry.setValue("Pincher/"+key+"/setpoint", motor.get());
+        Telemetry.setValue("Pincher/"+key+"/temperature", motor.getMotorTemperature());
+        Telemetry.setValue("Pincher/"+key+"/outputVoltage", motor.getAppliedOutput());
+        Telemetry.setValue("Pincher/"+key+"/statorcurrent", motor.getOutputCurrent());
+      }
 }

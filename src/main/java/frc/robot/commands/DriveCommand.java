@@ -75,32 +75,32 @@ public class DriveCommand extends CommandBase {
     // D-pad slow mode
     switch (driverController.getHID().getPOV()) {
       case 0:
-        m_LY += SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LY -=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 45:
-        m_LX += SWERVE_SLOW_SPEED_PERCENTAGE;
-        m_LY += SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LX -=- SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LY -=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 90:
-        m_LX += SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LX -=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 135:
-        m_LX += SWERVE_SLOW_SPEED_PERCENTAGE;
-        m_LY -= SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LX -=- SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LY +=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 180:
-        m_LY -= SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LY +=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 225:
-        m_LX -= SWERVE_SLOW_SPEED_PERCENTAGE;
-        m_LY -= SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LX +=- SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LY +=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 270:
-        m_LX -= SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LX +=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
       case 315:
-        m_LX -= SWERVE_SLOW_SPEED_PERCENTAGE;
-        m_LY += SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LX +=- SWERVE_SLOW_SPEED_PERCENTAGE;
+        m_LY -=- SWERVE_SLOW_SPEED_PERCENTAGE;
         break;
     }
     

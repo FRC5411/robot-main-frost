@@ -18,19 +18,20 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.POP;
 import frc.robot.Constants.ARM.positions;
-import java.util.function.Supplier;
 
 public class PinchersofPower extends SubsystemBase  {
   private final Compressor comp;
   private final DoubleSolenoid pusher;
+  private RobotContainer m_container;
   private final CANSparkMax spinner;
   private final CANSparkMax spinner2;
   private boolean m_cone;
   private double intakeSpeed = 0;
   private DigitalInput limitSwitch = new DigitalInput(Constants.DIO.GRIP_LIMIT_SWITCH);
-  private Supplier<positions> armPos;
 
-  public PinchersofPower() {
+
+  public PinchersofPower(RobotContainer m_container) {
+    this.m_container = m_container;
     comp = new Compressor(Constants.CAN.PCH_ID, PneumaticsModuleType.REVPH);
     pusher = new DoubleSolenoid(Constants.CAN.PCH_ID, PneumaticsModuleType.REVPH, Constants.POP.FORWARD_PNEUMATIC_CHANNEL, Constants.POP.BACKWARD_PNEUMATIC_CHANNEL);
 
@@ -40,16 +41,10 @@ public class PinchersofPower extends SubsystemBase  {
     m_cone = true;
 
     FrostConfigs.configIntakeMotor(spinner, false);
-    FrostConfigs.configIntakeMotor(spinner, true);
-
-    armPos = () -> positions.Idle;
+    FrostConfigs.configIntakeMotor(spinner2, true);
   }
 
-  public void setArmPos(Supplier<positions> armPos) {
-    this.armPos = armPos;
-  }
-
-  public boolean getGPDetected(){
+  public boolean getPiece(){
     return !limitSwitch.get();
   }
 
@@ -100,7 +95,9 @@ public class PinchersofPower extends SubsystemBase  {
     m_cone = (mode == GamePieces.Cone);
     spinSlow();
 
-    if(!m_cone) openGrip();
+    if(!m_cone){
+      openGrip();
+    }
   }
 
   public Command intakeCommand() {
@@ -109,9 +106,9 @@ public class PinchersofPower extends SubsystemBase  {
 
   public Command outTakeCommand() {
     return new InstantCommand( () -> {
-      if ( armPos.get() == positions.Substation && m_cone) { closeGrip();} 
+      if (m_container.getArm().target == positions.Substation && m_cone) { closeGrip();} 
       else if ( m_cone ) {
-        if ( armPos.get() == positions.ScoreLow) spinOut();  
+        if ( m_container.getArm().target == positions.ScoreLow) spinOut();  
         spinOff();
         openGrip();
       } 
@@ -119,9 +116,11 @@ public class PinchersofPower extends SubsystemBase  {
     });
   }
 
-  public Command spinOffCommand() { return new InstantCommand(() -> spinOff(), this); }
+  public Command spinOffCommand() { 
+    return new InstantCommand(() -> spinOff(), this); 
+  }
 
-  public boolean setClawAndIdleState(positions position) {
+  public boolean setClawState(positions position) {
     switch (position) {
       case ScoreHighCone:
       case ScoreHighCube:
@@ -132,12 +131,12 @@ public class PinchersofPower extends SubsystemBase  {
       case Floor:
       case FloorAlt:
       case Substation:
-          spinIn();
-          openGrip();
-          return false;
+        spinIn();
+        openGrip();
+        return false;
       case Idle:
           spinSlow();
-          return true;
+          return false;
       default:
           spinSlow();
           return false;
@@ -150,26 +149,22 @@ public class PinchersofPower extends SubsystemBase  {
       spinner.set(intakeSpeed);
       spinner2.set(intakeSpeed);
 
-      if ( getGPDetected() && (armPos.get() == positions.Substation || armPos.get() == positions.Floor) 
-      && m_cone && !RobotContainer.copilotController.getRawButton(15) ) closeGrip();
-    } else {
+      if ( getPiece() && (m_container.m_arm.target == positions.Substation || m_container.m_arm.target == positions.Floor) 
+          && m_cone && !RobotContainer.copilotController.getRawButton(15) ) closeGrip();
+      else {
       // prevent CAN timeouts when disabled, actual motor stoppage is handled at a lower level
       spinner.set(0);
       spinner2.set(0);
+      }
     }
 
-    intakeMotorTelemetry("leftMotor", spinner);
-    intakeMotorTelemetry("rightMotor", spinner2);
+    Telemetry.intakeMotorTelemetry("leftMotor", spinner);
+    Telemetry.intakeMotorTelemetry("rightMotor", spinner2);
     
-    Telemetry.setValue("Pincher/limitSwitch", !limitSwitch.get());
+    Telemetry.setValue("Pincher/limitSwitch", getPiece());
     Telemetry.setValue("Pincher/piston", pusher.get() == DoubleSolenoid.Value.kForward ? "Forward" : "Reverse");
     Telemetry.setValue("Pincher/compressor/pressure", comp.getPressure());
   }
 
-  public void intakeMotorTelemetry(String key, CANSparkMax motor) {
-    Telemetry.setValue("Pincher/"+key+"/setpoint", motor.get());
-    Telemetry.setValue("Pincher/"+key+"/temperature", motor.getMotorTemperature());
-    Telemetry.setValue("Pincher/"+key+"/outputVoltage", motor.getAppliedOutput());
-    Telemetry.setValue("Pincher/"+key+"/statorcurrent", motor.getOutputCurrent());
-  }
+
 }

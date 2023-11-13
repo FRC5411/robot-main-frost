@@ -1,25 +1,29 @@
 package frc.robot;
 import java.io.File;
+import java.util.HashMap;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import frc.lib.ButtonBoard;
+import frc.lib.Pigeon;
 import frc.lib.Telemetry;
 
 import frc.robot.Constants.ARM.positions;
+import frc.robot.commands.AutoBalance;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.PinchersofPower;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.PinchersofPower.GamePieces;
 
 public class RobotContainer {
@@ -27,14 +31,14 @@ public class RobotContainer {
   public static final CommandXboxController driverController = new CommandXboxController(0);
   public static final ButtonBoard copilotController = new ButtonBoard(1, 2);
 
+  public Pigeon m_gyro = new Pigeon();
+  public VisionSubsystem vision = new VisionSubsystem();
   public LEDs m_LEDs = new LEDs();
-  public PinchersofPower m_claw = new PinchersofPower();
+  public PinchersofPower m_claw = new PinchersofPower(this);
   public Arm m_arm = new Arm(m_claw, copilotController);
-  public Drivetrain m_swerve = new Drivetrain( m_arm, m_claw );
+  public Drivetrain m_swerve = new Drivetrain();
 
   public RobotContainer() {
-    m_claw.setArmPos(() -> m_arm.target);
-
     File[] paths = new File(Filesystem.getDeployDirectory(), "pathplanner").listFiles();
     String pathsString = "";
     for (int i = 0; i < paths.length; i++) {
@@ -55,73 +59,68 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
-    driverController.a().onTrue(new InstantCommand(m_swerve::zeroGyro) );
+    driverController.a().onTrue(new InstantCommand(m_gyro::zeroYaw));
+    driverController.b().onTrue(new InstantCommand(m_swerve::toggleRobotOrient));
+    driverController.y().onTrue(new InstantCommand(m_swerve::resetPoseWithLL));
+    // driverController.y().onTrue(
+    //   new InstantCommand( () -> m_swerve.resetPose(new Pose2d(9 , 3, new Rotation2d())) ));
+      
+    driverController.x().whileTrue(new InstantCommand(() -> m_swerve.moveToPositionCommand(m_claw::wantCone).schedule()));
+    driverController.x().onFalse(new InstantCommand(() -> {}, m_swerve));
 
-    driverController.b().onTrue(new InstantCommand(m_swerve::toggleRobotOrient) );
+    // driverController.y().onTrue(new InstantCommand(
+    //   () -> m_swerve.resetPose(
+    //     m_swerve.getTargetPose().plus(
+    //       new Transform2d(
+    //         new Translation2d(0.09, -0.09), 
+    //         Rotation2d.fromDegrees(0.8))))));
 
-    driverController.y().onTrue(new InstantCommand(m_swerve::resetPoseWithLL ) );
+    copilotController.button(0).whileTrue(m_arm.moveToPositionCommand(positions.Substation));
+    copilotController.button(0).onFalse(m_claw.intakeCommand().alongWith(m_arm.moveToPositionCommand(positions.Idle)));
 
-    driverController.x()
-      .whileTrue(new ScheduleCommand( m_swerve.moveToPositionCommand() ) )
-      .onFalse(  new InstantCommand(  () -> {}, m_swerve ) );
+    copilotController.button(1).whileTrue(m_arm.moveToPositionCommand(positions.Floor));
+    copilotController.button(1).onFalse(m_claw.intakeCommand());
 
-    copilotController.button(0)
-      .whileTrue(m_arm.moveToPositionCommand(positions.Substation))
-      .onFalse(  m_claw.intakeCommand().alongWith(m_arm.moveToPositionCommand(positions.Idle)));
+    copilotController.button(2).onTrue(new InstantCommand( () -> m_arm.goToScoreHigh().schedule()));
+    copilotController.button(2).onFalse(m_arm.defaultCommand());
+    copilotController.button(2).onFalse(m_claw.intakeCommand());
 
-    copilotController.button(1)
-      .whileTrue(m_arm.moveToPositionCommand(positions.Floor))
-      .onFalse(  m_claw.intakeCommand());
+    copilotController.button(3).whileTrue(m_arm.moveToPositionCommand(positions.FloorAlt));
+    copilotController.button(3).onFalse(m_claw.intakeCommand());
 
-    copilotController.button(2)
-      .onTrue(   new InstantCommand( () -> m_arm.goToScoreHigh().schedule()))
-      .onFalse(  m_arm.defaultCommand())
-      .onFalse(  m_claw.intakeCommand());
+    copilotController.button(4).whileTrue(new InstantCommand( () -> m_arm.goToScoreMid().schedule()));
+    copilotController.button(4).onFalse(m_claw.intakeCommand());
+    copilotController.button(4).onFalse(m_arm.defaultCommand());
 
-    copilotController.button(3)
-      .whileTrue(m_arm.moveToPositionCommand(positions.FloorAlt))
-      .onFalse(  m_claw.intakeCommand());
+    copilotController.button(5).whileTrue(m_arm.moveToPositionCommand(positions.ScoreLow));
+    copilotController.button(5).onFalse(m_claw.intakeCommand());
 
-    copilotController.button(4)
-      .whileTrue(new InstantCommand( () -> m_arm.goToScoreMid().schedule()))
-      .onFalse(  m_claw.intakeCommand())
-      .onFalse(  m_arm.defaultCommand());
+    copilotController.button(6).onTrue(new SequentialCommandGroup((m_claw.outTakeCommand()), new WaitCommand(0.25), m_arm.moveToPositionCommand(positions.Idle)));
+    copilotController.button(6).onFalse(m_claw.spinOffCommand());
 
-    copilotController.button(5)
-      .whileTrue(m_arm.moveToPositionCommand(positions.ScoreLow))
-      .onFalse(  m_claw.intakeCommand());
+    copilotController.button(7).onTrue(setGamePiece(GamePieces.Cube));
+    copilotController.button(8).onTrue(setGamePiece(GamePieces.Cone));
 
-    copilotController.button(6)
-      .onTrue(
-        new SequentialCommandGroup(
-          (m_claw.outTakeCommand()), 
-          new WaitCommand(0.25), 
-          m_arm.moveToPositionCommand(positions.Idle) ) )
-      .onFalse(m_claw.spinOffCommand());
-
-    copilotController.button(7).onTrue(setGamePiece( GamePieces.Cube ));
-    copilotController.button(8).onTrue(setGamePiece( GamePieces.Cone ));
-
-    copilotController.button(9)
-      .onTrue( m_arm.defaultCommand().alongWith(m_arm.onManual()))
-      .onFalse(m_arm.defaultCommand());
+    copilotController.button(9).onTrue(m_arm.defaultCommand().alongWith(m_arm.onManual()));
+    copilotController.button(9).onFalse(m_arm.defaultCommand());
     
-    copilotController.button(12)
-      .onTrue(    new InstantCommand( () -> { if ( isManual() ) m_claw.toggle(); } ) );
-
-    copilotController.button(14)
-      .whileTrue( new InstantCommand( () -> { if ( isManual() ) m_claw.spinOut(); } ) )
-      .onFalse(   new InstantCommand( () -> { if ( isManual() ) m_claw.spinOff(); } ) );
-
-    copilotController.button(13)
-      .whileTrue( new InstantCommand( () -> { if ( isManual() ) m_claw.spinIn(); } ) )
-      .onFalse(   new InstantCommand( () -> { if ( isManual() ) m_claw.spinOff(); } ) );
-
-    copilotController.button(10)
-      .whileTrue( new InstantCommand( () -> { if ( isManual() ) { m_arm.pushTargetTheta(); } } ).repeatedly() );
-
-    copilotController.button(11)
-      .whileTrue( new InstantCommand( () -> { if ( isManual() ) { m_arm.pushTargetTheta(); } } ).repeatedly() );
+    copilotController.button(12).onTrue(new InstantCommand( () -> {
+      if (copilotController.getRawButton(9)) {
+        m_claw.toggle(); 
+      }
+    }));
+    copilotController.button(14).whileTrue(new InstantCommand( () -> {
+      if (copilotController.getRawButton(9)) {
+        m_claw.spinOut();
+      }
+    }));
+    copilotController.button(14).onFalse(new InstantCommand( () -> {if (copilotController.getRawButton(9)) m_claw.spinOff();}));
+    copilotController.button(13).whileTrue(new InstantCommand( () -> {
+      if (copilotController.getRawButton(9)) {
+        m_claw.spinIn();
+      }
+    }));
+    copilotController.button(13).onFalse(new InstantCommand( () -> {if (copilotController.getRawButton(9)) m_claw.spinOff();}));
   }
 
   public void killRumble(){
@@ -129,7 +128,27 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return m_swerve.getAutonomousCommand().andThen(new InstantCommand( () -> m_swerve.stopModules()));
+    HashMap<String, Command> eventMap = new HashMap<>();
+    eventMap.put("marker1", new PrintCommand("Passed marker 1"));
+    eventMap.put("placeHighCone", m_arm.goToScoreHigh().withTimeout(1.5));
+    eventMap.put("placeMidCone", m_arm.goToScoreMid().withTimeout(1.5));
+    eventMap.put("placeHighCube", m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCube).withTimeout(1.5));
+    eventMap.put("tuck", m_arm.moveToPositionTerminatingCommand(positions.Idle).withTimeout(0.5));
+    eventMap.put("release", m_claw.outTakeCommand().andThen(new WaitCommand(.25)));
+    eventMap.put("pickupLow", m_arm.moveToPositionCommand(positions.AutonFloor).withTimeout(0.1));
+    eventMap.put("pickupLowAlt", m_arm.moveToPositionCommand(positions.FloorAlt).withTimeout(0.85));
+    eventMap.put("intake",(m_claw.intakeCommand().repeatedly().withTimeout(0.5)));
+    eventMap.put("autobalance", new AutoBalance(m_swerve, m_swerve.getGyro()));
+    eventMap.put("coneMode", new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); m_claw.spinSlow(); } ));
+    eventMap.put("cubeMode", new InstantCommand( () -> { m_claw.setCone(false); m_claw.openGrip(); } ));
+    eventMap.put("wait", new WaitCommand(0.75));
+
+    return m_swerve.getAutonomousCommand(eventMap, new SequentialCommandGroup(
+      new InstantCommand( () -> m_swerve.stopModules() ),
+      new InstantCommand( () -> { m_claw.setCone(true); m_claw.closeGrip(); } ),
+      m_arm.moveToPositionTerminatingCommand(positions.ScoreHighCone).withTimeout(2.75).andThen(m_arm.moveToPositionCommand(positions.DipHighCone).withTimeout(0.75)),
+      m_claw.outTakeCommand().andThen(new WaitCommand(.25)),
+      m_arm.moveToPositionTerminatingCommand(positions.Idle) )).andThen(new InstantCommand( () -> m_swerve.stopModules()));
   }
 
   public static DriverStation.Alliance getDriverAlliance() {

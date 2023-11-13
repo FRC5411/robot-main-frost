@@ -3,6 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
+import frc.lib.Pigeon;
 import frc.robot.subsystems.Drivetrain;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -11,7 +12,7 @@ import frc.robot.subsystems.Drivetrain;
 public class AutoBalance extends ProfiledPIDCommand {
   /** Creates a new AutoBalance. */
   private Drivetrain drivetrain;
-  public AutoBalance(Drivetrain drivetrain) {
+  public AutoBalance(Drivetrain drivetrain, Pigeon gyro) {
     super(
         // The ProfiledPIDController used by the command
         new ProfiledPIDController(
@@ -22,7 +23,7 @@ public class AutoBalance extends ProfiledPIDCommand {
             // The motion profile constraints
             new TrapezoidProfile.Constraints(1.5, 1)),
         // This should return the measurement
-        drivetrain::getGyroAngle, //gyro X angle
+        gyro::getPitch, //gyro X angle
         // This should return the goal (can also be a constant)
         0,
         // This uses the output
