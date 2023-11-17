@@ -290,15 +290,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void robotPositionTelemetry() {
-    if ( deb.calculate( vision.getCenterLimelight().hasTarget() ) ) {
-      System.out.println("MY FATHER" + Timer.getFPGATimestamp());
-      m_poseEstimator.addVisionMeasurement(
-        vision.getCenterLimelight().getPose(), 
-        Timer.getFPGATimestamp() - vision.getCenterLimelight().getLatency(),
-        VecBuilder.fill(
-          3.8 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 
-          3.8 * vision.getCenterLimelight().getTarget().getTranslation().getNorm(), 10000000) );
-    }
+    vision.addVisionMeasurement(m_poseEstimator);
 
     // System.out.println("MY MOTHER" + Timer.getFPGATimestamp());
     _robotPose = m_poseEstimator.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions());
