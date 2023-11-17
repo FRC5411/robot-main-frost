@@ -57,8 +57,10 @@ import frc.lib.Telemetry;
 import frc.robot.Constants.ARM.positions;
 import frc.robot.commands.AutoBalance;
 import frc.robot.commands.HolonomicController;
+import frc.robot.commands.HolonomicFeedforward;
 import frc.robot.commands.moveToPosition;
 import frc.robot.commands.HolonomicController.HolonomicConstraints;
+import frc.robot.commands.HolonomicFeedforward.FFConstants;
 import frc.robot.RobotContainer;
 
 public class Drivetrain extends SubsystemBase {
@@ -148,14 +150,17 @@ public class Drivetrain extends SubsystemBase {
   private double _alignXTranslationKp = 3.1;//5.5;//5; //5.5;
   private double _alignXTranslationKi = 0.17;//0.1;//0.;
   private double _alignXTranslationKd = 0.018;//0.05;
+  private FFConstants xFFConstants = new FFConstants(0.13, 1.25, 0.1);
 
   private double _alignYTranslationKp = 2.5;//2.2;//3.1; //5.5;
   private double _alignYTranslationKi = 0.05; //0.01;//0.;
   private double _alignYTranslationKd = 0.02; //0.03;
+  private FFConstants yFFConstants = new FFConstants(0.0, 1.02, 0.0);
 
   private double _alignRotationKp = 6.2;//2.5;
   private double _alignRotationKi = 0.01;// 0.03; //.42;
   private double _alignRotationKd = 0;//.0;
+  private FFConstants thetaFFConstants = new FFConstants(3.0, 0.0, 0.0);
 
   public Field2d field2d = new Field2d();
 
@@ -476,7 +481,11 @@ public class Drivetrain extends SubsystemBase {
         _alignRotationKp, 
         _alignRotationKi,
         _alignRotationKd,
-        _rotConstraints) );
+        _rotConstraints),
+      new HolonomicFeedforward(
+        yFFConstants, 
+        xFFConstants, 
+        thetaFFConstants));
     
     // controller.xControllerIRange(-0.75, 0.75);
     // controller.yControllerIRange(-0.5, 0.5);

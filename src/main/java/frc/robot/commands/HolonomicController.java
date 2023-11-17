@@ -8,20 +8,23 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import frc.lib.Telemetry;
+import frc.lib.SimpleUtils;
 
 public class HolonomicController {
     private ProfiledPIDController xController;
     private ProfiledPIDController yController;
     private ProfiledPIDController thetaController;
+    private HolonomicFeedforward feedforward;
 
     public HolonomicController(
-        ProfiledPIDController xController, ProfiledPIDController yController, ProfiledPIDController thetaController) {
+        ProfiledPIDController xController, ProfiledPIDController yController, 
+        ProfiledPIDController thetaController, HolonomicFeedforward feedforward) {
         thetaController.enableContinuousInput( -Math.PI, Math.PI );
 
         this.xController = xController;
         this.yController = yController;
         this.thetaController = thetaController;
+        this.feedforward = feedforward;
 
         setTolerance( new Pose2d() );
     }
@@ -58,9 +61,7 @@ public class HolonomicController {
             new Translation2d(
                 xController.getGoal().position, 
                 yController.getGoal().position), 
-            new Rotation2d(
-                thetaController.getGoal().position
-            ));
+            new Rotation2d( thetaController.getGoal().position ) );
     }
 
     public Pose2d getPositionSetpoint() {
@@ -68,8 +69,7 @@ public class HolonomicController {
             new Translation2d(
                 xController.getSetpoint().position, 
                 yController.getSetpoint().position ), 
-            new Rotation2d(
-                thetaController.getSetpoint().position ) );
+            new Rotation2d( thetaController.getSetpoint().position ) );
     }
 
     public ChassisSpeeds getVelocityGoal() {
@@ -87,7 +87,7 @@ public class HolonomicController {
     }
 
     public ChassisSpeeds calculate(Pose2d goalPose, Pose2d currentPose) {
-        return calculate(goalPose, new ChassisSpeeds(), currentPose);
+        return calculate( goalPose, new ChassisSpeeds(), currentPose );
     }
 
     public ChassisSpeeds calculate(Pose2d goalPose, ChassisSpeeds goalSpeed, Pose2d currentPose) {
@@ -148,25 +148,22 @@ public class HolonomicController {
             );
     }
 
-    public ChassisSpeeds calculateWithFF(Pose2d robotPose, double xkS, double xkV, double ykS, double ykV, double thetakS) {
+    public ChassisSpeeds calculateWithFF(Pose2d robotPose) {
 
-        ChassisSpeeds speeds = new ChassisSpeeds(
-            xController.calculate( robotPose.getX() )
-            + xController.getSetpoint().velocity * xkV + xkS * Math.signum(xController.getSetpoint().velocity) + 0.1,
-            yController.calculate( robotPose.getY() )
-            + yController.getSetpoint().velocity * ykV + ykS * Math.signum(yController.getSetpoint().velocity),
-            thetaController.calculate( robotPose.getRotation().getRadians()
-            + thetaController.getSetpoint().velocity + thetakS * Math.signum(thetaController.getSetpoint().velocity) ) );
+        ChassisSpeeds pidSpeeds = new ChassisSpeeds(
+            xController.calculate( robotPose.getX() ),
+            yController.calculate( robotPose.getY() ),
+            thetaController.calculate( robotPose.getRotation().getRadians() ) );
+
+        ChassisSpeeds ffSpeeds = feedforward.calculate(getVelocitySetpoint(), getPositionGoal().minus(robotPose));
+
+        ChassisSpeeds totalSpeeds = SimpleUtils.addChassisSpeeds(pidSpeeds, ffSpeeds);
         
-        Telemetry.setValue("ALIGNMENT/XOUTPUT", speeds.vxMetersPerSecond);
-        Telemetry.setValue("ALIGNMENT/YOUTPUT", speeds.vyMetersPerSecond);
-        Telemetry.setValue("ALIGNMENT/OMEGAOUTPUT", speeds.omegaRadiansPerSecond);
+        SimpleUtils.chassisSpeedsToTelemetry("ALIGNMENT/PID", pidSpeeds);
+        SimpleUtils.chassisSpeedsToTelemetry("ALIGNMENT/FF", ffSpeeds);
+        SimpleUtils.chassisSpeedsToTelemetry("ALIGNMENT/total", totalSpeeds);
 
-        Telemetry.setValue("ALIGNMENT/XPIDOUTPUT", speeds.vxMetersPerSecond - xController.getSetpoint().velocity);
-        Telemetry.setValue("ALIGNMENT/YPIDOUTPUT", speeds.vyMetersPerSecond - yController.getSetpoint().velocity);
-        Telemetry.setValue("ALIGNMENT/OMEGAPIDOUTPUT", speeds.omegaRadiansPerSecond - thetaController.getSetpoint().velocity);
-
-        return speeds;
+        return totalSpeeds;
     }
 
     public void setGoal(Pose2d goalPose) {
@@ -230,27 +227,19 @@ public class HolonomicController {
         thetaController.setIntegratorRange( lowerBound, higherBound );
     }
 
-    public void xIZone(double kI, double error, double min, double max) {
-        if((xController.getPositionError() < max) || (xController.getPositionError() > min)) xController.setI(kI);
-        else xController.setI(0);
+    public void xIZone(double kI, Pose2d robotPose, double zone) {
+        if(Math.abs( getPositionGoal().minus(robotPose).getX() ) < zone) xController.setI(kI);
+        else xController.setI(zone);
     }
 
-    public void yIZone(double kI, double min, double max) {
-        if((yController.getPositionError() < max) || (yController.getPositionError() > min)) xController.setI(kI);
+    public void yIZone(double kI, Pose2d robotPose, double zone) {
+        if(Math.abs( getPositionGoal().minus(robotPose).getY() ) < zone) yController.setI(kI);
         else yController.setI(0);
     }
 
-    public void thetaIZone(double kI, double min, double max) {
-        if((thetaController.getPositionError() < max) || (thetaController.getPositionError() > min)) xController.setI(kI);
+    public void thetaIZone(double kI, Pose2d robotPose, double zone) {
+        if(Math.abs( getPositionGoal().minus(robotPose).getRotation().getDegrees() ) < zone) thetaController.setI(kI);
         else thetaController.setI(0);
-    }
-
-    public Pose2d getPoseError() {
-        return new Pose2d(
-            xController.getPositionError(),
-            yController.getPositionError(),
-            new Rotation2d(thetaController.getPositionError())
-        );
     }
 
     public static class HolonomicConstraints {
