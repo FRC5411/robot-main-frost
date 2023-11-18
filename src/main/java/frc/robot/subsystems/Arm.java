@@ -557,6 +557,10 @@ public class Arm extends SubsystemBase {
         Telemetry.setValue("Arm/stage3/targetPosition", m_stage3Target);
         Telemetry.setValue("Arm/stage2/internalVelocity", m_stage2.getEncoder().getVelocity());
 
+        Telemetry.setValue("Arm/stage1/frequency", m_stage1Encoder.getFrequency());
+        Telemetry.setValue("Arm/stage2/frequency", m_stage2Encoder.getFrequency());        
+        Telemetry.setValue("Arm/stage3/frequency", m_stage3Encoder.getFrequency());
+
         if ( DriverStation.isEnabled() || DriverStation.isAutonomousEnabled() ) {
             double stage1Calc = 
                 MathUtil.clamp(

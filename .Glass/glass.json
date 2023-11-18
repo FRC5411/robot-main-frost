@@ -14,6 +14,7 @@
       },
       "telemetry": {
         "Arm": {
+          "open": true,
           "stage1": {
             "open": true
           },
@@ -56,6 +57,9 @@
             "open": true
           },
           "Odometry": {
+            "open": true
+          },
+          "pip": {
             "open": true
           }
         },
@@ -109,13 +113,13 @@
               "open": true
             },
             "open": true
-          },
-          "open": true
+          }
         },
         "general": {
           "autonomous": {
             "open": true
-          }
+          },
+          "open": true
         },
         "limelight-limeone": {
           "2d": {
@@ -134,13 +138,6 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Field": "Field2d"
-    },
-    "windows": {
-      "/SmartDashboard/Field": {
-        "window": {
-          "visible": true
-        }
-      }
     }
   },
   "NetworkTables Settings": {
