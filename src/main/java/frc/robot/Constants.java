@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.lib.ArmPosition;
+import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -19,18 +20,18 @@ import frc.lib.ArmPosition;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-    public class PWM {
+    public static class PWM {
         public static final int BLINKIN_ID = 0;
     }
 
-    public class DIO {
+    public static class DIO {
         public static final int ARM_STAGE_1_ENCODER_ID = 7;
         public static final int ARM_STAGE_2_ENCODER_ID = 8;
         public static final int ARM_STAGE_3_ENCODER_ID = 9;
         public static final int GRIP_LIMIT_SWITCH = 1;
     }
 
-    public class CAN {
+    public static class CAN {
         // CAN Bus IDs
         public static final int PDH_ID = 1;
         public static final int PCH_ID = 2;
@@ -62,7 +63,7 @@ public final class Constants {
         public static final int GRIP_RIGHT_ID = 42;
     }
 
-    public class DRIVETRAIN {
+    public static class DRIVETRAIN {
         // robot width (meters)
         public static final double ROBOT_WIDTH_METERS = 0.6858;
         // wheel diameter (meters)
@@ -106,9 +107,23 @@ public final class Constants {
 
         public static final double AUTO_BALANCE_Kp = 0.1;
         public static final double AUTO_BALANCE_Kd = 0;
+
+        public static final StatorCurrentLimitConfiguration DRIVE_CURRENT_LIMIT = 
+            new StatorCurrentLimitConfiguration(
+          true, 
+          60, 
+          60, 
+          0);
+    
+        public static final StatorCurrentLimitConfiguration AZIMUTH_CURRENT_LIMIT = 
+            new StatorCurrentLimitConfiguration(
+          true, 
+          30, 
+          40, 
+          0.2);
     }
 
-    public class LL {
+    public static class LL {
         public static final double SLOPE = 0;
         public static final double YINT = 0;
     }
@@ -191,7 +206,7 @@ public final class Constants {
         return newAngle;
     }
 
-    public class POP {
+    public static class POP {
         public static final double F = 0;
         public static final double R = 0;
         public static final double SPEEDOUT = 0.8;
@@ -201,7 +216,7 @@ public final class Constants {
         public static final int BACKWARD_PNEUMATIC_CHANNEL = 15;
     }
 
-    public class LED {
+    public static class LED {
         // public static final double YELLOW = 0.69;
         // public static final double PURPLE = 0.91;
         // public static final double RED = 0.61;

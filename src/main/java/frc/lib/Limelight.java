@@ -32,7 +32,7 @@ public class Limelight {
     return ( limelight.getEntry("tv").getDouble(0) == 1 );
   }
 
-  public double getyaw() {
+  public double getYaw() {
     return limelight.getEntry("tx").getDouble(0);
   }
 
@@ -66,7 +66,7 @@ public class Limelight {
   }
 
   public void periodic() {
-    frc.lib.Telemetry.setValue("R"+key+"/2d/yaw", getyaw());
+    frc.lib.Telemetry.setValue("R"+key+"/2d/yaw", getYaw());
     frc.lib.Telemetry.setValue("R"+key+"/2d/pitch", getPitch());
     frc.lib.Telemetry.setValue("R"+key+"/2d/area", getArea());
     frc.lib.Telemetry.setValue("R"+key+"/pip/pipeline", getPipeLineIndex());

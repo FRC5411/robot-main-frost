@@ -1,7 +1,8 @@
 package frc.lib;
 
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.WPI_CANCoder;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -11,16 +12,32 @@ import edu.wpi.first.math.MathUtil;
 import static frc.robot.Constants.DRIVETRAIN.*;
 
 public class SwerveModule {
-    public TalonFX driveMotor;
-    public TalonFX angleMotor;
-    public CANCoder angleEncoder;
+    public WPI_TalonFX driveMotor;
+    public WPI_TalonFX angleMotor;
+    public WPI_CANCoder angleEncoder;
     public PIDController angleController;
     public double kF;
     public SwerveModuleState desiredState = new SwerveModuleState();
     public String key;
 
-    public SwerveModule(TalonFX driveMotor, TalonFX angleMotor, CANCoder angleEncoder, 
-    PIDController angleController, double kF, String key) {
+    public SwerveModule(
+        int driveMotorID, int angleMotorID, int angleEncoderID, double offset,
+        PIDController angleController, double kF, String key) {
+        this(
+            new WPI_TalonFX(driveMotorID), 
+            new WPI_TalonFX(angleMotorID), 
+            new WPI_CANCoder(angleEncoderID), 
+            angleController, kF, key );
+        FrostConfigs.configPID(angleController);
+        FrostConfigs.configPosition(this.angleEncoder, offset);
+        FrostConfigs.configAzimuth(
+            this.angleMotor, this.angleEncoder, 
+            angleController.getP(), angleController.getD(), kF);
+        FrostConfigs.configDrive(this.driveMotor);
+    }
+
+    public SwerveModule(WPI_TalonFX driveMotor, WPI_TalonFX angleMotor, WPI_CANCoder angleEncoder, 
+                        PIDController angleController, double kF, String key) {
         this.driveMotor = driveMotor;
         this.angleMotor = angleMotor;
         this.angleEncoder = angleEncoder;
@@ -48,12 +65,10 @@ public class SwerveModule {
             Math.abs(desiredState.speedMetersPerSecond) <= (MAX_LINEAR_SPEED * 0.01) 
             ? angleEncoder.getAbsolutePosition() : desiredState.angle.getDegrees();
 
-        angleMotor.set(
-            ControlMode.PercentOutput,
-            MathUtil.clamp(
+        angleMotor.setVoltage(
+            12 * MathUtil.clamp(
                 angleController.calculate(angleEncoder.getAbsolutePosition(), angleDegrees) 
-                + kF * Math.signum(angleController.getPositionError()), -1, 1));
-        // angleMotor.set(ControlMode.Position, angleDegrees);
+                + kF * Math.signum( angleController.getPositionError() ), -1, 1) );
     }
 
     public void setVelocity(SwerveModuleState desiredState) {

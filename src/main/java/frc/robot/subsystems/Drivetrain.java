@@ -6,14 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.SensorInitializationStrategy;
-
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.PIDConstants;
@@ -47,7 +39,8 @@ import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-
+import frc.lib.FrostConfigs;
+import frc.lib.SimpleUtils;
 import frc.lib.SwerveModule;
 import frc.lib.Telemetry;
 
@@ -77,22 +70,7 @@ public class Drivetrain extends SubsystemBase {
 
   private SwerveModuleState[] modules = new SwerveModuleState[4];
 
-  private final CANCoder FL_Position = new CANCoder(FL_CANCODER_ID, "drivetrain");
-  private final CANCoder FR_Position = new CANCoder(FR_CANCODER_ID, "drivetrain");
-  private final CANCoder BL_Position = new CANCoder(BL_CANCODER_ID, "drivetrain");
-  private final CANCoder BR_Position = new CANCoder(BR_CANCODER_ID, "drivetrain");
-
-  private final TalonFX FL_Drive = new TalonFX(FL_DRIVE_ID, "drivetrain");
-  private final TalonFX FR_Drive = new TalonFX(FR_DRIVE_ID, "drivetrain");
-  private final TalonFX BL_Drive = new TalonFX(BL_DRIVE_ID, "drivetrain");
-  private final TalonFX BR_Drive = new TalonFX(BR_DRIVE_ID, "drivetrain");
-
   private final CANSparkMax shwerveDrive = new CANSparkMax(SHWERVE_DRIVE_ID, MotorType.kBrushless);
-
-  private final TalonFX FL_Azimuth = new TalonFX(FL_AZIMUTH_ID, "drivetrain");
-  private final TalonFX FR_Azimuth = new TalonFX(FR_AZIMUTH_ID, "drivetrain");
-  private final TalonFX BL_Azimuth = new TalonFX(BL_AZIMUTH_ID, "drivetrain");
-  private final TalonFX BR_Azimuth = new TalonFX(BR_AZIMUTH_ID, "drivetrain");
 
   private final PIDController FL_PID = new PIDController(0.0094, 0, 0.000277); // 0.105
   private final PIDController FR_PID = new PIDController(0.0095, 0, 0.000270);
@@ -107,20 +85,6 @@ public class Drivetrain extends SubsystemBase {
   private SwerveModule[] swerveModules = new SwerveModule[4];
 
   private boolean isRobotOriented = false;
-  
-  private static final StatorCurrentLimitConfiguration DRIVE_CURRENT_LIMIT = 
-    new StatorCurrentLimitConfiguration(
-      true, 
-      60, 
-      60, 
-      0);
-
-  private static final StatorCurrentLimitConfiguration AZIMUTH_CURRENT_LIMIT = 
-    new StatorCurrentLimitConfiguration(
-      true, 
-      30, 
-      40, 
-      0.2);
 
   private static SwerveDrivePoseEstimator m_poseEstimator;
   private static SwerveDriveOdometry m_Odometry;
@@ -177,30 +141,20 @@ public class Drivetrain extends SubsystemBase {
     this.m_claw = m_claw;
     this.vision = vision;
 
-    configPID(FL_PID);
-    configPID(FR_PID);
-    configPID(BL_PID);
-    configPID(BR_PID);
+    swerveModules[0] = new SwerveModule( 
+      FL_DRIVE_ID, FL_AZIMUTH_ID, FL_CANCODER_ID, 
+      FL_ECODER_OFFSET, FL_PID, FL_kF, "FL" );
+    swerveModules[1] = new SwerveModule( 
+      FR_DRIVE_ID, FR_AZIMUTH_ID, FR_CANCODER_ID, 
+      FR_ECODER_OFFSET, FR_PID, FR_kF, "FR" );
+    swerveModules[2] = new SwerveModule( 
+      BL_DRIVE_ID, BL_AZIMUTH_ID, BL_CANCODER_ID, 
+      BL_ECODER_OFFSET, BL_PID, BL_kF, "BL" );
+    swerveModules[3] = new SwerveModule( 
+      BR_DRIVE_ID, BR_AZIMUTH_ID, BR_CANCODER_ID, 
+      FR_ECODER_OFFSET, BR_PID, BR_kF, "BR" );
 
-    configDrive(FL_Drive);
-    configDrive(FR_Drive);
-    configDrive(BL_Drive);
-    configDrive(BR_Drive);
-
-    configPosition(FL_Position, FL_ECODER_OFFSET);
-    configPosition(FR_Position, FR_ECODER_OFFSET);
-    configPosition(BL_Position, BL_ECODER_OFFSET);
-    configPosition(BR_Position, BR_ECODER_OFFSET);
-
-    configAzimuth(FL_Azimuth, FL_Position, FL_PID.getP(), FL_PID.getD(), FL_kF);
-    configAzimuth(FR_Azimuth, FR_Position, FR_PID.getP(), FR_PID.getD(), FR_kF);
-    configAzimuth(BL_Azimuth, BL_Position, BL_PID.getP(), BL_PID.getD(), BL_kF);
-    configAzimuth(BR_Azimuth, BR_Position, BR_PID.getP(), BR_PID.getD(), BR_kF);
-
-    swerveModules[0] = new SwerveModule( FL_Drive, FL_Azimuth, FL_Position, FL_PID, FL_kF, "FL" );
-    swerveModules[1] = new SwerveModule( FR_Drive, FR_Azimuth, FR_Position, FR_PID, FR_kF, "FR" );
-    swerveModules[2] = new SwerveModule( BL_Drive, BL_Azimuth, BL_Position, BL_PID, BL_kF, "BL" );
-    swerveModules[3] = new SwerveModule( BR_Drive, BR_Azimuth, BR_Position, BR_PID, BR_kF, "BR" );
+      FrostConfigs.configShwerve(shwerveDrive);
 
     m_poseEstimator = new SwerveDrivePoseEstimator(
       m_kinematics, 
@@ -219,13 +173,7 @@ public class Drivetrain extends SubsystemBase {
     Telemetry.setValue("drivetrain/PathPlanner/translationKd", _translationKd);
     Telemetry.setValue("drivetrain/PathPlanner/rotationKp", _rotationKp);
     Telemetry.setValue("drivetrain/PathPlanner/rotationKi", _rotationKi);
-    Telemetry.setValue("drivetrain/PathPlanner/rotationKd", _rotationKd);
-
-    shwerveDrive.restoreFactoryDefaults();
-    shwerveDrive.clearFaults();
-    shwerveDrive.setSmartCurrentLimit(60);
-    shwerveDrive.setSecondaryCurrentLimit(60);
-    shwerveDrive.burnFlash();
+    Telemetry.setValue("drivetrain/PathPlanner/rotationKd", _rotationKd);;
 
    if (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Red)) {
       _coneWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
@@ -298,8 +246,8 @@ public class Drivetrain extends SubsystemBase {
       transform.getY(), 
       transform.getRotation().getDegrees() );
 
-    poseToTelemetry( _robotPose, "/chassis/" );
-    poseToTelemetry(m_Odometry.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions()), "/chassisOdometry/");
+    SimpleUtils.poseToTelemetry( _robotPose, "/chassis/" );
+    SimpleUtils.poseToTelemetry(m_Odometry.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions()), "/chassisOdometry/");
     Telemetry.setValue("drivetrain/chassis/robot/forwardSpeed", forwardKinematics.vxMetersPerSecond);
     Telemetry.setValue("drivetrain/chassis/robot/rightwardSpeed", forwardKinematics.vyMetersPerSecond);
     Telemetry.setValue("drivetrain/chassis/clockwiseSpeed", Math.toDegrees(forwardKinematics.omegaRadiansPerSecond));
@@ -323,7 +271,7 @@ public class Drivetrain extends SubsystemBase {
 
     else m_chassisSpeeds = new ChassisSpeeds(LY * MAX_LINEAR_SPEED, -LX * MAX_LINEAR_SPEED, -RX * MAX_ROTATION_SPEED);
 
-    m_chassisSpeeds = discretize( m_chassisSpeeds );
+    m_chassisSpeeds = SimpleUtils.discretize( m_chassisSpeeds );
     modules = m_kinematics.toSwerveModuleStates( m_chassisSpeeds );
 
     SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
@@ -332,7 +280,7 @@ public class Drivetrain extends SubsystemBase {
 
   // For autonomous
   public void driveFromModuleStates ( SwerveModuleState[] modules ) {
-    modules = m_kinematics.toSwerveModuleStates( discretize( m_kinematics.toChassisSpeeds(modules) ) );
+    modules = m_kinematics.toSwerveModuleStates( SimpleUtils.discretize( m_kinematics.toChassisSpeeds(modules) ) );
     SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
     setDesiredStates();
   }
@@ -407,8 +355,8 @@ public class Drivetrain extends SubsystemBase {
     Pose2d closest = actualPose.nearest( m_claw.wantCone() ? _coneWaypoints : _cubeWaypoints );
     if (closest == null) return new InstantCommand();
 
-    poseToTelemetry(actualPose, "Align/startPose");
-    poseToTelemetry(closest, "Align/choosenWaypoint");
+    SimpleUtils.poseToTelemetry(actualPose, "Align/startPose");
+    SimpleUtils.poseToTelemetry(closest, "Align/choosenWaypoint");
     if(_robotPose.getX() >= 14.05 || _robotPose.getX() < 8) return pathToCommand(closest);
     return pathToCommand( optimizeWaypoints( closest ) );
   }
@@ -580,76 +528,5 @@ public class Drivetrain extends SubsystemBase {
       Rotation2d.fromDegrees( m_gyro.getYaw() ), 
       getSwerveModulePositions(), 
       pose);
-  }
-
-  private void configDrive (TalonFX motor) {
-    configDrive(motor, DRIVE_kP, DRIVE_kF);
-  }
-
-  // public to avoid warnings
-  public void configAzimuth (TalonFX motor, CANCoder position) {
-    configAzimuth(motor, position, AZIMUTH_kP, AZIMUTH_kD, AZIMUTH_kF);
-  }
-
-  private void configDrive (TalonFX motor, double kP, double kF) {
-    motor.configFactoryDefault();
-    motor.setInverted(TalonFXInvertType.CounterClockwise);
-    motor.setNeutralMode(NeutralMode.Brake);
-    motor.configStatorCurrentLimit(DRIVE_CURRENT_LIMIT);
-    motor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
-    motor.setSelectedSensorPosition(0);
-    motor.config_kP(0, kP);
-    motor.config_kF(0, kF);
-    motor.configVoltageCompSaturation(12);
-    motor.enableVoltageCompensation(true);
-  }
-
-  private void configAzimuth (TalonFX motor, CANCoder position, double kP, double kD, double kF) {
-    motor.configFactoryDefault();
-    motor.setInverted(TalonFXInvertType.CounterClockwise);
-    motor.setNeutralMode(NeutralMode.Brake);
-    motor.configRemoteFeedbackFilter(position, 0);
-    motor.configSelectedFeedbackSensor(FeedbackDevice.RemoteSensor0);
-    motor.configSelectedFeedbackCoefficient(360 / (2048 * AZIMUTH_GEAR_RATIO));
-    motor.configStatorCurrentLimit(AZIMUTH_CURRENT_LIMIT);
-    motor.setSelectedSensorPosition(degreesToFalcon(position.getAbsolutePosition()));
-    motor.config_kP(0, kP);
-    motor.config_kD(0, kD);
-    motor.config_kF(0, kF);
-    motor.configNeutralDeadband(AZIMUTH_DEADBAND);
-  }
-
-  private void configPosition (CANCoder encoder, double offset) {
-    encoder.configFactoryDefault();
-    encoder.configMagnetOffset(offset);
-    encoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
-    encoder.setPositionToAbsolute();
-  }
-
-  private void configPID(PIDController controller) {
-    controller.enableContinuousInput(0, 360);
-    controller.setTolerance(0);
-  }
-
-  public ChassisSpeeds discretize(ChassisSpeeds speeds) {
-    double dt = 0.02;
-    var desiredDeltaPose = new Pose2d(
-      speeds.vxMetersPerSecond * dt, 
-      speeds.vyMetersPerSecond * dt, 
-      new Rotation2d(speeds.omegaRadiansPerSecond * dt * 3)
-    );
-    var twist = new Pose2d().log(desiredDeltaPose);
-
-    return new ChassisSpeeds((twist.dx / dt), (twist.dy / dt), (speeds.omegaRadiansPerSecond));
-  }
-
-  public void poseToTelemetry(Pose2d pose, String key) {
-    Telemetry.setValue("drivetrain/" + key + "/x", pose.getTranslation().getX());
-    Telemetry.setValue("drivetrain/" + key + "/y", pose.getTranslation().getY());
-    Telemetry.setValue("drivetrain/" + key + "/heading", pose.getRotation().getDegrees());
-  }
-
-  public static double degreesToFalcon(double degrees) {
-    return degrees / (360.0 / ( AZIMUTH_GEAR_RATIO * 2048.0));
   }
 }
