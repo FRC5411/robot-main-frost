@@ -28,9 +28,8 @@ public class moveToObject{
         this.arm = arm;
     }
 
-    public Command toFloor() {
-        if(arm.target != positions.Floor || 
-           arm.target != positions.AutonFloor) return arm.moveToPositionCommand(positions.Floor);
+    public Command toSubstation() {
+        if(arm.target != positions.Substation) return arm.moveToPositionAutoTerminatingCommand(positions.Substation);
         else return new InstantCommand();
     }
 
@@ -49,13 +48,18 @@ public class moveToObject{
                 controller.reset( vision.getCenterLimelight().getYaw() );
             }, 
             () -> {
+                System.out.println(" \n \n \n \n RUNN ANGLE \n \n \n \n ");
+                System.out.println(" \n \n \n \n"+hasObject.getAsBoolean()+"\n \n \n \n ");
                 drivetrain.driveFromChassisSpeeds( 
                     new ChassisSpeeds( 
                         0, 
                         0, 
                         Math.toRadians( controller.calculate( vision.getCenterLimelight().getYaw() ) ) ) );
+                
             }, 
-            (interrupted) -> {},
+            (interrupted) -> {
+                System.out.println(" \n \n \n \n END ANGLE \n \n \n \n ");
+            },
             () -> ( controller.atGoal() ), 
             drivetrain);
     }
@@ -67,20 +71,27 @@ public class moveToObject{
             new TrapezoidProfile.Constraints(180, 90) );
         controller.enableContinuousInput( -180, 180 );
         controller.setTolerance( 1 );
+        controller.setGoal(0);
+        System.out.println(" \n \n \n \n RUN MOVE \n \n \n \n ");
 
         return new FunctionalCommand(
             () -> {
+                System.out.println(" \n \n \n \n RUN MOVE \n \n \n \n ");
                 vision.getCenterLimelight().setPipelineIndex(1);
                 controller.setGoal(0);
                 controller.reset( vision.getCenterLimelight().getYaw() );
+                drivetrain.setRobotOriented(false);
             },
-            () -> 
+            () -> {
+                System.out.println(" \n \n \n \n RUN MOVE \n \n \n \n ");
                 drivetrain.driveFromChassisSpeeds( 
                     new ChassisSpeeds( 
-                        Math.cos( drivetrain.getPose().getRotation().getRadians() ), 
-                        Math.sin( drivetrain.getPose().getRotation().getRadians() ), 
-                        Math.toRadians( controller.calculate( vision.getCenterLimelight().getYaw() ) ) ) ), 
-            (interrupted) -> {}, 
+                        0.5, 0, 
+                        Math.toRadians( controller.calculate( vision.getCenterLimelight().getYaw() ) ) ) ); }, 
+            (interrupted) -> {
+                System.out.println(" \n \n \n \n END MOVE \n \n \n \n ");
+                drivetrain.setRobotOriented(true);
+            }, 
             () -> ( hasObject.getAsBoolean() ), 
             drivetrain);
     }
@@ -88,7 +99,7 @@ public class moveToObject{
     public Command collectGamepiece() {
         return new SequentialCommandGroup(
             toAngle(3),
-            toFloor(),
+            toSubstation(),
             toGamePiece()
         );
     }

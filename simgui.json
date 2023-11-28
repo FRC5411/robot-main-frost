@@ -46,13 +46,9 @@
     },
     "transitory": {
       "SmartDashboard": {
-        "Field": {
-          "open": true
-        },
         "PPSwerveControllerCommand": {
           "open": true
-        },
-        "open": true
+        }
       },
       "telemetry": {
         "Arm": {
@@ -61,8 +57,11 @@
           }
         },
         "drivetrain": {
-          "PathPlanner": {
-            "open": true
+          "chassis": {
+            "open": true,
+            "robot": {
+              "open": true
+            }
           },
           "gyro": {
             "open": true
@@ -80,7 +79,14 @@
               "drive": {
                 "open": true
               }
-            }
+            },
+            "BR": {
+              "drive": {
+                "open": true
+              },
+              "open": true
+            },
+            "open": true
           },
           "odometry": {
             "field": {
@@ -97,7 +103,8 @@
           "autonomous": {
             "open": true
           }
-        }
+        },
+        "open": true
       }
     }
   },
@@ -125,6 +132,26 @@
     },
     "Server": {
       "open": true
+    }
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "height": 386,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/telemetry/drivetrain/modules/BR/drive/targetSpeed"
+            }
+          ]
+        }
+      ]
     }
   }
 }

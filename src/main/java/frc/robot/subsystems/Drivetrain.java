@@ -222,15 +222,7 @@ public class Drivetrain extends SubsystemBase {
     for(int i = 0; i < swerveModules.length; i++) swerveModules[i].telemetry();
 
     Telemetry.setValue("drivetrain/isRobotOriented", isRobotOriented);
-    // Telemetry.setValue("e", modules);
     robotPositionTelemetry();
-
-    // double[] e = new double[8];
-    // e[0] = modules[0].angle.getRadians();
-    // e[1] = modules[0].speedMetersPerSecond;
-    // e[2] = modules[1].angle.getRadians();
-    // e[3] = modules[2].speedMetersPerSecond;
-    // SmartDashboard.putNumberArray("e", e);
   }
 
   public void robotPositionTelemetry() {

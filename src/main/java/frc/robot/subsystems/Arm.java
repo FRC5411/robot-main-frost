@@ -452,6 +452,85 @@ public class Arm extends SubsystemBase {
             this
         );
     }
+    
+    public Command moveToPositionAutoTerminatingCommand (positions position) {
+        return new FunctionalCommand(
+            () -> {
+                boolean dip = (position == positions.DipHighCone) || (position == positions.DipMidCone);
+                if(!dip) resetProfiles();
+                if (!m_copilotController.getRawButton(9)) {
+                    m_copilotController.setLED(10, false);
+                    m_copilotController.setLED(11, false);
+                    m_copilotController.setLED(12, false);
+                    m_copilotController.setLED(13, false);
+                    m_copilotController.setLED(14, false);
+                    m_copilotController.setLED(0, true);
+                    m_copilotController.setLED(1, true);
+                    m_copilotController.setLED(2, true);
+                    m_copilotController.setLED(3, true);
+                    m_copilotController.setLED(4, true);
+                    m_copilotController.setLED(5, true);
+                    m_copilotController.setLED(6, true);
+                } else {
+                    m_copilotController.setLED(10, true);
+                    m_copilotController.setLED(11, true);
+                    m_copilotController.setLED(12, true);
+                    m_copilotController.setLED(13, true);
+                    m_copilotController.setLED(14, true);
+                    m_copilotController.setLED(0, false);
+                    m_copilotController.setLED(1, false);
+                    m_copilotController.setLED(2, false);
+                    m_copilotController.setLED(3, false);
+                    m_copilotController.setLED(4, false);
+                    m_copilotController.setLED(5, false);
+                    m_copilotController.setLED(6, false);
+                }
+        
+                switch (position) {
+                    case ScoreHighCone:
+                        break;
+                    case ScoreHighCube:
+                        break;
+                    case ScoreMidCone:
+                        break;
+                    case ScoreMidCube:
+                        break;
+                    case ScoreLow:
+                        break;
+                    case Floor:
+                        m_clawSubsystem.spinIn();
+                        m_clawSubsystem.openGrip();
+                        break;
+                    case FloorAlt:
+                        m_clawSubsystem.spinIn();
+                        m_clawSubsystem.openGrip();
+                        break;
+                    case Substation:
+                        m_clawSubsystem.spinIn();
+                        m_clawSubsystem.openGrip();
+                        break;
+                    case Idle:
+                        movingToIdle = true;
+                        m_clawSubsystem.spinSlow();
+                        break;
+                    default:
+                        m_clawSubsystem.spinSlow();
+                        break;
+                }
+            }, 
+            () -> {
+                moveToPosition(position);
+            
+            }, 
+            interrupted -> {
+                movingToIdle = false;
+            },
+            () -> {
+                return true;
+            },
+            this
+        );
+    }
 
     public Command moveToPointCommand () {
         return new FunctionalCommand(

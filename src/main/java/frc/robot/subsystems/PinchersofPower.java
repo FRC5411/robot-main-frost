@@ -64,8 +64,7 @@ public class PinchersofPower extends SubsystemBase  {
   }
 
   public boolean getPiece(){
-    if(limitSwitch.get()) return true;
-    return false;
+    return !limitSwitch.get();
   }
 
   public void closeGrip() {
@@ -120,8 +119,6 @@ public class PinchersofPower extends SubsystemBase  {
     }
   }
 
-  
-
   public Command intakeCommand() {
     return new InstantCommand(() -> intake(), this);
   }
@@ -158,7 +155,7 @@ public class PinchersofPower extends SubsystemBase  {
     intakeMotorTelemetry("leftMotor", spinner);
     intakeMotorTelemetry("rightMotor", spinner2);
     
-    Telemetry.setValue("Pincher/limitSwitch", !limitSwitch.get());
+    Telemetry.setValue("Pincher/limitSwitch", getPiece());
     Telemetry.setValue("Pincher/piston", pusher.get() == DoubleSolenoid.Value.kForward ? "Forward" : "Reverse");
     Telemetry.setValue("Pincher/compressor/pressure", comp.getPressure());
   }

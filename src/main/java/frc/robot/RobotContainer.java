@@ -16,6 +16,7 @@ import frc.lib.Telemetry;
 
 import frc.robot.Constants.ARM.positions;
 import frc.robot.commands.DriveCommand;
+import frc.robot.commands.moveToObject;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
@@ -35,6 +36,8 @@ public class RobotContainer {
   public PinchersofPower m_claw = new PinchersofPower(this);
   public Arm m_arm = new Arm(m_claw, copilotController);
   public Drivetrain m_swerve = new Drivetrain(m_gyro, m_arm, m_claw, vision);
+
+  public moveToObject moveToObject = new moveToObject(vision, () -> m_claw.getPiece(), m_swerve, m_arm);
 
   public RobotContainer() {
     File[] paths = new File(Filesystem.getDeployDirectory(), "pathplanner").listFiles();
@@ -68,7 +71,8 @@ public class RobotContainer {
     driverController.b().onTrue(new InstantCommand(m_swerve::toggleRobotOrient));
     driverController.y().onTrue(new InstantCommand(m_swerve::resetPoseWithLL));
       
-    driverController.x().whileTrue(new InstantCommand(() -> m_swerve.moveToPositionCommand().schedule()));
+    //driverController.x().whileTrue(new InstantCommand(() -> m_swerve.moveToPositionCommand().schedule()));
+    driverController.x().whileTrue(new InstantCommand(() -> moveToObject.collectGamepiece().schedule()));
     driverController.x().onFalse(new InstantCommand(() -> {}, m_swerve));
 
     // driverController.y().onTrue(new InstantCommand(
