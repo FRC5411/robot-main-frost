@@ -1,7 +1,7 @@
 package frc.lib;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.sensors.WPI_CANCoder;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -12,9 +12,9 @@ import edu.wpi.first.math.MathUtil;
 import static frc.robot.Constants.DRIVETRAIN.*;
 
 public class SwerveModule {
-    public WPI_TalonFX driveMotor;
-    public WPI_TalonFX angleMotor;
-    public WPI_CANCoder angleEncoder;
+    public TalonFX driveMotor;
+    public TalonFX angleMotor;
+    public CANCoder angleEncoder;
     public PIDController angleController;
     public double kF;
     public SwerveModuleState desiredState = new SwerveModuleState();
@@ -24,9 +24,9 @@ public class SwerveModule {
         int driveMotorID, int angleMotorID, int angleEncoderID, double offset,
         PIDController angleController, double kF, String key) {
         this(
-            new WPI_TalonFX(driveMotorID), 
-            new WPI_TalonFX(angleMotorID), 
-            new WPI_CANCoder(angleEncoderID), 
+            new TalonFX(driveMotorID), 
+            new TalonFX(angleMotorID), 
+            new CANCoder(angleEncoderID), 
             angleController, kF, key );
         FrostConfigs.configPID(angleController);
         FrostConfigs.configPosition(this.angleEncoder, offset);
@@ -36,7 +36,7 @@ public class SwerveModule {
         FrostConfigs.configDrive(this.driveMotor);
     }
 
-    public SwerveModule(WPI_TalonFX driveMotor, WPI_TalonFX angleMotor, WPI_CANCoder angleEncoder, 
+    public SwerveModule(TalonFX driveMotor, TalonFX angleMotor, CANCoder angleEncoder, 
                         PIDController angleController, double kF, String key) {
         this.driveMotor = driveMotor;
         this.angleMotor = angleMotor;
@@ -65,8 +65,8 @@ public class SwerveModule {
             Math.abs(desiredState.speedMetersPerSecond) <= (MAX_LINEAR_SPEED * 0.01) 
             ? angleEncoder.getAbsolutePosition() : desiredState.angle.getDegrees();
 
-        angleMotor.setVoltage(
-            12 * MathUtil.clamp(
+        angleMotor.set( ControlMode.PercentOutput,
+            MathUtil.clamp(
                 angleController.calculate(angleEncoder.getAbsolutePosition(), angleDegrees) 
                 + kF * Math.signum( angleController.getPositionError() ), -1, 1) );
     }

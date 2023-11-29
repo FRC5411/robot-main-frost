@@ -15,6 +15,7 @@ public class VisionSubsystem extends SubsystemBase{
 
     public VisionSubsystem() {
         centerLimelight = new Limelight("limelight-limeone");
+        centerLimelight.setPipelineIndex(1);
         deb = new Debouncer(0.2);
     }
 

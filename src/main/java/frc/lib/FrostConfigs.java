@@ -1,7 +1,7 @@
 package frc.lib;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.sensors.WPI_CANCoder;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 
 import static frc.robot.Constants.DRIVETRAIN.*;
@@ -15,16 +15,16 @@ import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
 
 public class FrostConfigs {
-    public static void configDrive (WPI_TalonFX motor) {
+    public static void configDrive (TalonFX motor) {
         configDrive(motor, DRIVE_kP, DRIVE_kF);
     }
     
       // public to avoid warnings
-    public static void configAzimuth (WPI_TalonFX motor, WPI_CANCoder position) {
+    public static void configAzimuth (TalonFX motor, CANCoder position) {
         configAzimuth(motor, position, AZIMUTH_kP, AZIMUTH_kD, AZIMUTH_kF);
     }
     
-    public static void configDrive (WPI_TalonFX motor, double kP, double kF) {
+    public static void configDrive (TalonFX motor, double kP, double kF) {
         motor.configFactoryDefault();
         motor.setInverted(TalonFXInvertType.CounterClockwise);
         motor.setNeutralMode(NeutralMode.Brake);
@@ -37,7 +37,7 @@ public class FrostConfigs {
         motor.enableVoltageCompensation(true);
     }
     
-    public static void configAzimuth (WPI_TalonFX motor, WPI_CANCoder position, double kP, double kD, double kF) {
+    public static void configAzimuth (TalonFX motor, CANCoder position, double kP, double kD, double kF) {
         motor.configFactoryDefault();
         motor.setInverted(TalonFXInvertType.CounterClockwise);
         motor.setNeutralMode(NeutralMode.Brake);
@@ -52,7 +52,7 @@ public class FrostConfigs {
         motor.configNeutralDeadband(AZIMUTH_DEADBAND);
     }
     
-    public static void configPosition (WPI_CANCoder encoder, double offset) {
+    public static void configPosition (CANCoder encoder, double offset) {
         encoder.configFactoryDefault();
         encoder.configMagnetOffset(offset);
         encoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);

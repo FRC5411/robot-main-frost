@@ -78,9 +78,13 @@
               },
               "drive": {
                 "open": true
-              }
+              },
+              "open": true
             },
             "BR": {
+              "azimuth": {
+                "open": true
+              },
               "drive": {
                 "open": true
               },

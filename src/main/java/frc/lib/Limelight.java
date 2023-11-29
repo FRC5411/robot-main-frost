@@ -17,7 +17,7 @@ public class Limelight {
   public Limelight(String key) {
     this.key = key;
     limelight = NetworkTableInstance.getDefault().getTable(key);
-    limelight.getEntry("pipeline").setNumber(0);
+    limelight.getEntry("pipeline").setNumber(1);
   }
 
   public void setPipelineIndex(int index) {

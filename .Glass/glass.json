@@ -14,7 +14,6 @@
       },
       "telemetry": {
         "Arm": {
-          "open": true,
           "stage1": {
             "open": true
           },

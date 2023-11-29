@@ -53,6 +53,9 @@ import frc.robot.commands.HolonomicController.HolonomicConstraints;
 import frc.robot.commands.HolonomicFeedforward.FFConstants;
 import frc.robot.RobotContainer;
 
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.sensors.CANCoder;
+
 public class Drivetrain extends SubsystemBase {
   private Pigeon m_gyro;
   private Arm m_arm;
@@ -70,7 +73,22 @@ public class Drivetrain extends SubsystemBase {
 
   private SwerveModuleState[] modules = new SwerveModuleState[4];
 
+  private final CANCoder FL_Position = new CANCoder(FL_CANCODER_ID, "drivetrain");
+  private final CANCoder FR_Position = new CANCoder(FR_CANCODER_ID, "drivetrain");
+  private final CANCoder BL_Position = new CANCoder(BL_CANCODER_ID, "drivetrain");
+  private final CANCoder BR_Position = new CANCoder(BR_CANCODER_ID, "drivetrain");
+
+  private final TalonFX FL_Drive = new TalonFX(FL_DRIVE_ID, "drivetrain");
+  private final TalonFX FR_Drive = new TalonFX(FR_DRIVE_ID, "drivetrain");
+  private final TalonFX BL_Drive = new TalonFX(BL_DRIVE_ID, "drivetrain");
+  private final TalonFX BR_Drive = new TalonFX(BR_DRIVE_ID, "drivetrain");
+
   private final CANSparkMax shwerveDrive = new CANSparkMax(SHWERVE_DRIVE_ID, MotorType.kBrushless);
+
+  private final TalonFX FL_Azimuth = new TalonFX(FL_AZIMUTH_ID, "drivetrain");
+  private final TalonFX FR_Azimuth = new TalonFX(FR_AZIMUTH_ID, "drivetrain");
+  private final TalonFX BL_Azimuth = new TalonFX(BL_AZIMUTH_ID, "drivetrain");
+  private final TalonFX BR_Azimuth = new TalonFX(BR_AZIMUTH_ID, "drivetrain");
 
   private final PIDController FL_PID = new PIDController(0.0094, 0, 0.000277); // 0.105
   private final PIDController FR_PID = new PIDController(0.0095, 0, 0.000270);
@@ -141,18 +159,30 @@ public class Drivetrain extends SubsystemBase {
     this.m_claw = m_claw;
     this.vision = vision;
 
-    swerveModules[0] = new SwerveModule( 
-      FL_DRIVE_ID, FL_AZIMUTH_ID, FL_CANCODER_ID, 
-      FL_ECODER_OFFSET, FL_PID, FL_kF, "FL" );
-    swerveModules[1] = new SwerveModule( 
-      FR_DRIVE_ID, FR_AZIMUTH_ID, FR_CANCODER_ID, 
-      FR_ECODER_OFFSET, FR_PID, FR_kF, "FR" );
-    swerveModules[2] = new SwerveModule( 
-      BL_DRIVE_ID, BL_AZIMUTH_ID, BL_CANCODER_ID, 
-      BL_ECODER_OFFSET, BL_PID, BL_kF, "BL" );
-    swerveModules[3] = new SwerveModule( 
-      BR_DRIVE_ID, BR_AZIMUTH_ID, BR_CANCODER_ID, 
-      FR_ECODER_OFFSET, BR_PID, BR_kF, "BR" );
+    FrostConfigs.configPID(FL_PID);
+    FrostConfigs.configPID(FR_PID);
+    FrostConfigs.configPID(BL_PID);
+    FrostConfigs.configPID(BR_PID);
+
+    FrostConfigs.configDrive(FL_Drive);
+    FrostConfigs.configDrive(FR_Drive);
+    FrostConfigs.configDrive(BL_Drive);
+    FrostConfigs.configDrive(BR_Drive);
+
+    FrostConfigs.configPosition(FL_Position, FL_ECODER_OFFSET);
+    FrostConfigs.configPosition(FR_Position, FR_ECODER_OFFSET);
+    FrostConfigs.configPosition(BL_Position, BL_ECODER_OFFSET);
+    FrostConfigs.configPosition(BR_Position, BR_ECODER_OFFSET);
+
+    FrostConfigs.configAzimuth(FL_Azimuth, FL_Position, FL_PID.getP(), FL_PID.getD(), FL_kF);
+    FrostConfigs.configAzimuth(FR_Azimuth, FR_Position, FR_PID.getP(), FR_PID.getD(), FR_kF);
+    FrostConfigs.configAzimuth(BL_Azimuth, BL_Position, BL_PID.getP(), BL_PID.getD(), BL_kF);
+    FrostConfigs.configAzimuth(BR_Azimuth, BR_Position, BR_PID.getP(), BR_PID.getD(), BR_kF);
+    
+    swerveModules[0] = new SwerveModule( FL_Drive, FL_Azimuth, FL_Position, FL_PID, FL_kF, "FL" );
+    swerveModules[1] = new SwerveModule( FR_Drive, FR_Azimuth, FR_Position, FR_PID, FR_kF, "FR" );
+    swerveModules[2] = new SwerveModule( BL_Drive, BL_Azimuth, BL_Position, BL_PID, BL_kF, "BL" );
+    swerveModules[3] = new SwerveModule( BR_Drive, BR_Azimuth, BR_Position, BR_PID, BR_kF, "BR" );
 
       FrostConfigs.configShwerve(shwerveDrive);
 
@@ -286,9 +316,20 @@ public class Drivetrain extends SubsystemBase {
     setDesiredStates();
   }
 
+  public void driveFromChassisSpeedsLocked (ChassisSpeeds speeds) {
+    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+      speeds, m_poseEstimator.getEstimatedPosition().getRotation() );
+
+    modules = m_kinematics.toSwerveModuleStates( speeds );
+    SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
+    setLockedStates();
+  }
+
   public void stopModules () { for(int i = 0; i <= 3; i++) swerveModules[i].stopMotors(); }
 
   public void setDesiredStates() { for(int i = 0; i <= 3; i++) swerveModules[i].setDesiredState( modules[i] ); }
+
+  public void setLockedStates() { for(int i = 0; i <= 3; i++) swerveModules[i].setLockedState( modules[i] ); }
 
   public void shwerve ( double LX, double LY) {
     // 6in diameter wheels, 10:1 o
