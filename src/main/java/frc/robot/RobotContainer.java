@@ -37,7 +37,7 @@ public class RobotContainer {
   public Arm m_arm = new Arm(m_claw, copilotController);
   public Drivetrain m_swerve = new Drivetrain(m_gyro, m_arm, m_claw, vision);
 
-  public moveToObject moveToObject = new moveToObject(vision, m_swerve, m_arm, m_claw);
+  public moveToObject moveToObject = new moveToObject(vision, m_swerve, m_arm, m_claw, m_LEDs);
 
   public RobotContainer() {
     File[] paths = new File(Filesystem.getDeployDirectory(), "pathplanner").listFiles();

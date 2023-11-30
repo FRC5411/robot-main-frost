@@ -56,6 +56,9 @@
             "open": true
           }
         },
+        "LEDS": {
+          "open": true
+        },
         "drivetrain": {
           "chassis": {
             "open": true,
@@ -73,18 +76,24 @@
           },
           "modules": {
             "BL": {
-              "azimuth": {
-                "open": true
-              },
               "drive": {
                 "open": true
               },
               "open": true
             },
             "BR": {
-              "azimuth": {
+              "drive": {
                 "open": true
               },
+              "open": true
+            },
+            "FL": {
+              "drive": {
+                "open": true
+              },
+              "open": true
+            },
+            "FR": {
               "drive": {
                 "open": true
               },
@@ -97,8 +106,7 @@
               "open": true
             },
             "open": true
-          },
-          "open": true
+          }
         },
         "general": {
           "PDH": {

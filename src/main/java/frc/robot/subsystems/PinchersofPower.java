@@ -157,6 +157,7 @@ public class PinchersofPower extends SubsystemBase  {
     intakeMotorTelemetry("leftMotor", spinner);
     intakeMotorTelemetry("rightMotor", spinner2);
     
+    Telemetry.setValue("Pincher/Mode", m_cone);
     Telemetry.setValue("Pincher/limitSwitch", getPiece());
     Telemetry.setValue("Pincher/piston", pusher.get() == DoubleSolenoid.Value.kForward ? "Forward" : "Reverse");
     Telemetry.setValue("Pincher/compressor/pressure", comp.getPressure());

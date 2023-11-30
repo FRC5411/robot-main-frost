@@ -33,7 +33,7 @@ public class Limelight {
   }
 
   public String getObjectType() {
-    return limelight.getEntry("tclass").getString("null");
+    return limelight.getEntry("tclass").getString("cube");
   }
 
   public double getYaw() {
@@ -73,6 +73,7 @@ public class Limelight {
     frc.lib.Telemetry.setValue("R"+key+"/2d/yaw", getYaw());
     frc.lib.Telemetry.setValue("R"+key+"/2d/pitch", getPitch());
     frc.lib.Telemetry.setValue("R"+key+"/2d/area", getArea());
+    frc.lib.Telemetry.setValue("R"+key+"/2d/clas", getObjectType());
     frc.lib.Telemetry.setValue("R"+key+"/pip/pipeline", getPipeLineIndex());
     frc.lib.Telemetry.setValue("R"+key+"/hastarget", hasTarget());
     frc.lib.Telemetry.setValue("R"+key+"/Odometry/X", getPose().getX());

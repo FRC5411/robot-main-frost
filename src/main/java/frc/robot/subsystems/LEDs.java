@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.lib.Telemetry;
 
 public class LEDs extends SubsystemBase {
   private AddressableLED m_led;
@@ -30,6 +31,7 @@ public class LEDs extends SubsystemBase {
   }
 
   public void setColor ( int r, int g, int b ) {
+    System.out.println("\n \n TESTINGS \n \n.");
     m_r = r;
     m_g = g;
     m_b = b;
@@ -81,10 +83,14 @@ public class LEDs extends SubsystemBase {
   
   @Override
   public void periodic() {
-    for (var i = 0; i < m_ledBuffer.getLength(); i++) { m_ledBuffer.setRGB(i, m_r, m_g, m_b); }
+    for (var i = 0; i < m_ledBuffer.getLength(); i++) m_ledBuffer.setRGB(i, m_r, m_g, m_b);
 
     m_led.setData(m_ledBuffer);
     m_led.start();
+
+    Telemetry.setValue("LEDS/R", m_ledBuffer.getLED(9).red);
+    Telemetry.setValue("LEDS/G", m_ledBuffer.getLED(9).green);
+    Telemetry.setValue("LEDS/B", m_ledBuffer.getLED(9).blue);
   }
 
   @Override

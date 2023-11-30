@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Constants.ARM.positions;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.PinchersofPower;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.PinchersofPower.GamePieces;
@@ -19,13 +20,15 @@ public class moveToObject{
     Drivetrain drivetrain;
     Arm arm;
     PinchersofPower intake;
+    LEDs leds;
     ProfiledPIDController angleController;
     
-    public moveToObject(VisionSubsystem vision, Drivetrain drivetrain, Arm arm, PinchersofPower intake) {
+    public moveToObject(VisionSubsystem vision, Drivetrain drivetrain, Arm arm, PinchersofPower intake,LEDs leds) {
         this.vision = vision;
         this.drivetrain = drivetrain;
         this.arm = arm;
         this.intake = intake;
+        this.leds = leds;
 
         angleController = 
             new ProfiledPIDController(
@@ -34,6 +37,15 @@ public class moveToObject{
         angleController.enableContinuousInput( -180, 180 );
         angleController.setTolerance( 0.0 );
         angleController.setGoal(0);
+    }
+
+    public Command collectGamepiece() {
+        return new SequentialCommandGroup(
+            toAngle(3),
+            arm.moveToPositionTerminatingCommand(positions.Substation),
+            toGamePiece(),
+            arm.moveToPositionCommand(positions.Idle)
+        );
     }
 
     public Command toAngle(double tolerance) {
@@ -78,19 +90,15 @@ public class moveToObject{
             drivetrain);
     }
 
-    public Command collectGamepiece() {
-        return new SequentialCommandGroup(
-            toAngle(3),
-            arm.moveToPositionTerminatingCommand(positions.Substation),
-            toGamePiece(),
-            arm.moveToPositionCommand(positions.Idle)
-        );
-    }
-
     public void setMode() {
-        if(vision.getCenterLimelight().getObjectType().equals("cone")) intake.setMode(GamePieces.Cone);
-        else if( vision.getCenterLimelight().getObjectType().equals("cube")) intake.setMode(GamePieces.Cube);
-
+        if(vision.getCenterLimelight().getObjectType().equals("cone")) {
+            intake.setMode(GamePieces.Cone);
+            leds.turnYellow().initialize();;
+        }
+        else if( vision.getCenterLimelight().getObjectType().equals("cube")) {
+            intake.setMode(GamePieces.Cube);
+            leds.turnPurple().initialize();
+        }
     }
 
     public void initSystemsAndController(double tolerance) {
