@@ -1,9 +1,5 @@
 package frc.robot.commands;
 
-import java.util.function.BooleanSupplier;
-
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -16,77 +12,56 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.PinchersofPower;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.PinchersofPower.GamePieces;
 
 public class moveToObject{
-    BooleanSupplier hasObject;
     VisionSubsystem vision;
     Drivetrain drivetrain;
     Arm arm;
     PinchersofPower intake;
+    ProfiledPIDController angleController;
     
-    public moveToObject(VisionSubsystem vision, BooleanSupplier hasObject, Drivetrain drivetrain, Arm arm, PinchersofPower intake) {
+    public moveToObject(VisionSubsystem vision, Drivetrain drivetrain, Arm arm, PinchersofPower intake) {
         this.vision = vision;
-        this.hasObject = hasObject;
         this.drivetrain = drivetrain;
         this.arm = arm;
         this.intake = intake;
-    }
 
-    public Command toSubstation() {
-        if(arm.target != positions.Substation) return arm.moveToPositionTerminatingCommand(positions.Substation);
-        else return new InstantCommand();
-    }
-
-    public Command toAngle(double tolerance) {
-        ProfiledPIDController controller = 
+        angleController = 
             new ProfiledPIDController(
                 6.2, 0, 0, 
                 new TrapezoidProfile.Constraints(180, 90) );
-        controller.enableContinuousInput( -180, 180 );
-        controller.setTolerance( tolerance );
+        angleController.enableContinuousInput( -180, 180 );
+        angleController.setTolerance( 0.0 );
+        angleController.setGoal(0);
+    }
 
+    public Command toAngle(double tolerance) {
         Debouncer db = new Debouncer(0.2);
 
         return new FunctionalCommand(
-            () -> {
-                vision.getCenterLimelight().setPipelineIndex(1);
-                controller.setGoal(0);
-                controller.reset( vision.getCenterLimelight().getYaw() );
-            }, 
+            () -> initSystemsAndController(tolerance), 
             () -> {
                 System.out.println(" \n \n \n \n RUNN ANGLE \n \n \n \n ");
-                System.out.println(" \n \n \n \n"+hasObject.getAsBoolean()+"\n \n \n \n ");
+                System.out.println(" \n \n \n \n"+intake.getPiece()+"\n \n \n \n ");
                 drivetrain.driveFromChassisSpeedsLocked ( 
                     new ChassisSpeeds( 
-                        0, 
-                        0, 
-                        Math.toRadians( controller.calculate( vision.getCenterLimelight().getYaw() ) ) ) );
-                
+                        0, 0, 
+                        getControllerOutput() ) );
             }, 
             (interrupted) -> {
                 System.out.println(" \n \n \n \n END ANGLE \n \n \n \n ");
             },
-            () -> ( db.calculate(controller.atGoal()) ), 
+            () -> ( db.calculate(angleController.atGoal()) ), 
             drivetrain);
     }
 
     public Command toGamePiece() {
-        ProfiledPIDController controller = 
-        new ProfiledPIDController(
-            6.2, 0, 0, 
-            new TrapezoidProfile.Constraints(180, 90) );
-        controller.enableContinuousInput( -180, 180 );
-        controller.setTolerance( 1 );
-        controller.setGoal(0);
-
         Debouncer db = new Debouncer(0.1);
 
         return new FunctionalCommand(
             () -> {
-                System.out.println(" \n \n \n \n RUN MOVE \n \n \n \n ");
-                vision.getCenterLimelight().setPipelineIndex(1);
-                controller.setGoal(0);
-                controller.reset( vision.getCenterLimelight().getYaw() );
+                initSystemsAndController(0);
                 drivetrain.setRobotOriented(false);
             },
             () -> {
@@ -94,21 +69,38 @@ public class moveToObject{
                 drivetrain.driveFromChassisSpeeds( 
                     new ChassisSpeeds( 
                         0.5, 0, 
-                        Math.toRadians( controller.calculate( vision.getCenterLimelight().getYaw() ) ) ) ); }, 
+                        getControllerOutput() ) ); }, 
             (interrupted) -> {
-                System.out.println(" \n \n \n \n END MOVE \n \n \n \n ");
+                System.out.println(" \n \n END MOVE \n \n ");
                 drivetrain.setRobotOriented(true);
             }, 
-            () -> ( db.calculate(hasObject.getAsBoolean()) ), 
+            () -> ( db.calculate( intake.getPiece() ) ), 
             drivetrain);
     }
 
     public Command collectGamepiece() {
         return new SequentialCommandGroup(
             toAngle(3),
-            toSubstation(),
+            arm.moveToPositionTerminatingCommand(positions.Substation),
             toGamePiece(),
-            new InstantCommand( () -> intake.closeGrip() )
+            arm.moveToPositionCommand(positions.Idle)
         );
+    }
+
+    public void setMode() {
+        if(vision.getCenterLimelight().getObjectType().equals("cone")) intake.setMode(GamePieces.Cone);
+        else if( vision.getCenterLimelight().getObjectType().equals("cube")) intake.setMode(GamePieces.Cube);
+
+    }
+
+    public void initSystemsAndController(double tolerance) {
+        vision.getCenterLimelight().setPipelineIndex(1);
+        setMode();
+        angleController.reset( vision.getCenterLimelight().getYaw() );
+        angleController.setTolerance(tolerance);
+    }
+
+    public double getControllerOutput() {
+        return Math.toRadians( angleController.calculate( vision.getCenterLimelight().getYaw() ) );
     }
 }

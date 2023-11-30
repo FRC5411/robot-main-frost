@@ -32,6 +32,10 @@ public class Limelight {
     return ( limelight.getEntry("tv").getDouble(0) == 1 );
   }
 
+  public String getObjectType() {
+    return limelight.getEntry("tclass").getString("null");
+  }
+
   public double getYaw() {
     return limelight.getEntry("tx").getDouble(0);
   }

@@ -138,7 +138,7 @@ public class Drivetrain extends SubsystemBase {
   private double _alignRotationKp = 6.2;//2.5;
   private double _alignRotationKi = 0.01;// 0.03; //.42;
   private double _alignRotationKd = 0;//.0;
-  private FFConstants thetaFFConstants = new FFConstants(0.0, 3.0, 0.0);
+  private FFConstants thetaFFConstants = new FFConstants(3.0, 0.0, 0.0);
 
   public Field2d field2d = new Field2d();
 
@@ -417,9 +417,20 @@ public class Drivetrain extends SubsystemBase {
     SequentialCommandGroup commands = new SequentialCommandGroup();
 
     for(int i = 0; i < waypoints.size() - 1; i++) {
+      ChassisSpeeds speeds;
+      Transform2d transform = waypoints.get( i ).minus( waypoints.get( i + 1 ) );
+      if( !(transform.getX() < 1e-6 && transform.getY() < 1e-6) ) {
+        if(transform.getX() < 1e-6) 
+          speeds = new ChassisSpeeds(0.25, 0.0, 0.0);
+        else if(transform.getY() < 1e-6) 
+          speeds = new ChassisSpeeds(0.0, 0.25, 0.0);
+        else speeds = new ChassisSpeeds();
+      } else speeds = new ChassisSpeeds();
+
       commands.addCommands(
         _moveToPosition.generateMoveToPositionCommandTimed(
           waypoints.get( i ),
+          speeds,
           new Pose2d( 0.1, 0.1, Rotation2d.fromDegrees(3) ),
           _holonomicConstraints,
           generateAlignmentController() ) );

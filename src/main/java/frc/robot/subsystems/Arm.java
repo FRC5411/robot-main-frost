@@ -130,6 +130,7 @@ public class Arm extends SubsystemBase {
         m_stage2.setIdleMode(IdleMode.kBrake);
         m_stage3.setIdleMode(IdleMode.kBrake);
 
+        m_stage1.setInverted(false);
         m_stage2.setInverted(false);
         m_stage3.setInverted(false);
 
@@ -644,8 +645,8 @@ public class Arm extends SubsystemBase {
             double stage1Calc = 
                 MathUtil.clamp(
                     m_stage1FF.calculate(
-                        Math.toRadians(m_stage1PID.getSetpoint().position), 
-                        m_stage1PID.getSetpoint().velocity) + 
+                        Math.toRadians( m_stage1PID.getSetpoint().position ), 
+                        Math.toRadians( m_stage1PID.getSetpoint().velocity ) ) + 
                     12.0 * m_stage1PID.calculate( 
                         m_stage1Encoder.getAbsolutePosition() * 360 - STAGE_1_OFFSET, 
                         m_stage1Target - STAGE_1_OFFSET), -12, 12);
@@ -653,9 +654,8 @@ public class Arm extends SubsystemBase {
             double stage2Calc = 
                 MathUtil.clamp(
                     m_stage2FF.calculate(
-                        Math.toRadians(
-                            m_stage1PID.getSetpoint().position), 
-                            m_stage2PID.getSetpoint().velocity) + 
+                        Math.toRadians( m_stage2PID.getSetpoint().position ), 
+                        Math.toRadians( m_stage2PID.getSetpoint().velocity ) ) + 
                     12.0 * m_stage2PID.calculate(
                         m_stage2Encoder.getAbsolutePosition() * 360 - STAGE_2_OFFSET, 
                         m_stage2Target - STAGE_2_OFFSET), -12, 12);
@@ -663,8 +663,8 @@ public class Arm extends SubsystemBase {
             double stage3Calc = 
                 MathUtil.clamp(
                     m_stage3FF.calculate(
-                        Math.toRadians( m_stage1PID.getSetpoint().position ), 
-                        m_stage2PID.getSetpoint().velocity ) + 
+                        Math.toRadians( m_stage3PID.getSetpoint().position ), 
+                        Math.toRadians( m_stage3PID.getSetpoint().velocity ) )+ 
                     12.0 * m_stage3PID.calculate(
                         m_stage3Encoder.getAbsolutePosition() * 360 - STAGE_3_OFFSET, 
                         m_stage3Target - STAGE_3_OFFSET), -12, 12);
@@ -689,8 +689,8 @@ public class Arm extends SubsystemBase {
         }
     }
     
-    @Override  public void simulationPeriodic() {}
-
+    @Override  
+    public void simulationPeriodic() {}
 
     public void resetProfiles() {
         m_stage1PID.reset(m_stage1Encoder.getAbsolutePosition() * 360 - STAGE_1_OFFSET);

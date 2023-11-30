@@ -111,7 +111,7 @@ public class PinchersofPower extends SubsystemBase  {
   public boolean wantCone () { return m_cone; }
 
   public void setMode(GamePieces mode) {
-    m_cone = (mode == GamePieces.Cone);
+    setCone( mode == GamePieces.Cone );
     spinSlow();
 
     if(!m_cone){
@@ -125,7 +125,7 @@ public class PinchersofPower extends SubsystemBase  {
 
   public Command outTakeCommand() {
     return new InstantCommand( () -> {
-      if (m_container.getArm().target == positions.Substation && m_cone) { closeGrip();} 
+      if (m_container.getArm().target == positions.Substation && m_cone) closeGrip();
       else if ( m_cone ) {
         if ( m_container.getArm().target == positions.ScoreLow) spinOut();  
         spinOff();
@@ -135,7 +135,9 @@ public class PinchersofPower extends SubsystemBase  {
     });
   }
 
-  public Command spinOffCommand() { return new InstantCommand(() -> spinOff(), this); }
+  public Command spinOffCommand() { 
+    return new InstantCommand(() -> spinOff(), this); 
+  }
 
   @Override
   public void periodic() {
@@ -143,9 +145,9 @@ public class PinchersofPower extends SubsystemBase  {
       spinner.set(intakeSpeed);
       spinner2.set(intakeSpeed);
 
-      if ( !limitSwitch.get() && (m_container.m_arm.target == positions.Substation || m_container.m_arm.target == positions.Floor) && m_cone && !RobotContainer.copilotController.getRawButton(15) ) {
-        closeGrip();
-      }
+      if ( getPiece() && (m_container.m_arm.target == positions.Substation || 
+      m_container.m_arm.target == positions.Floor) && m_cone && 
+      !RobotContainer.copilotController.getRawButton(15) ) closeGrip();
     } else {
       // prevent CAN timeouts when disabled, actual motor stoppage is handled at a lower level
       spinner.set(0);
