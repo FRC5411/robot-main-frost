@@ -125,20 +125,20 @@ public class Drivetrain extends SubsystemBase {
   private double _rotationKi = 0;
   private double _rotationKd = 0.085; // 0.1
 
-  private double _alignXTranslationKp = 3.1;//5.5;//5; //5.5;
+  private double _alignXTranslationKp = 3.5;//5.5;//5; //5.5;
   private double _alignXTranslationKi = 0.17;//0.1;//0.;
   private double _alignXTranslationKd = 0.018;//0.05;
-  private FFConstants xFFConstants = new FFConstants(0.13, 1.25, 0.1);
+  private FFConstants xFFConstants = new FFConstants(0, 0.15, 1.25);
 
   private double _alignYTranslationKp = 2.5;//2.2;//3.1; //5.5;
   private double _alignYTranslationKi = 0.05; //0.01;//0.;
   private double _alignYTranslationKd = 0.02; //0.03;
-  private FFConstants yFFConstants = new FFConstants(0.0, 1.02, 0.0);
+  private FFConstants yFFConstants = new FFConstants(0.0, 0.0, 1.02);
 
   private double _alignRotationKp = 6.2;//2.5;
   private double _alignRotationKi = 0.01;// 0.03; //.42;
   private double _alignRotationKd = 0;//.0;
-  private FFConstants thetaFFConstants = new FFConstants(3.0, 0.0, 0.0);
+  private FFConstants thetaFFConstants = new FFConstants(0.0, 3.0, 0.0);
 
   public Field2d field2d = new Field2d();
 
