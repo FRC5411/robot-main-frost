@@ -6,26 +6,31 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 // import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Pose3d;
 // import frc.robot.RobotContainer;
 
 public class Limelight {
   private NetworkTable limelight;
-  private boolean pipelineIndex;
+  private int pipelineIndex;
   private double[] posevalues;
+  private Pose3d offset;
   private String key;
 
-  public Limelight(String key) {
+  public Limelight(String key, Pose3d offset) {
     this.key = key;
     limelight = NetworkTableInstance.getDefault().getTable(key);
-    limelight.getEntry("pipeline").setNumber(1);
+    // limelight.getEntry("pipeline").setNumber(1);
+    this.offset = offset;
+    setPipelineIndex(1);
   }
 
   public void setPipelineIndex(int index) {
+    limelight.getEntry("getpipe").setNumber(index);
     limelight.getEntry("pipeline").setNumber(index);
   }
 
   public int getPipeLineIndex() {
-    return pipelineIndex ? 1 : 0;
+    return pipelineIndex;
   }
 
   public boolean hasTarget() {
@@ -59,8 +64,8 @@ public class Limelight {
 
   public Pose2d getTarget() {
     posevalues = limelight.getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
-    Translation2d translate = new Translation2d(posevalues[0], posevalues[1]);
-    Rotation2d rotation = new Rotation2d(Math.toRadians(posevalues[3]));
+    Translation2d translate = new Translation2d(posevalues[0] - offset.getX(), posevalues[1] - offset.getY());
+    Rotation2d rotation = new Rotation2d(Math.toRadians(posevalues[3]) - offset.getRotation().getX());
     return new Pose2d(translate, rotation);
   }
 
@@ -70,6 +75,8 @@ public class Limelight {
   }
 
   public void periodic() {
+    // limelight.getEntry("getpipe").setNumber(pipelineIndex);
+
     frc.lib.Telemetry.setValue("R"+key+"/2d/yaw", getYaw());
     frc.lib.Telemetry.setValue("R"+key+"/2d/pitch", getPitch());
     frc.lib.Telemetry.setValue("R"+key+"/2d/area", getArea());
