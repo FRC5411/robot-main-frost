@@ -35,7 +35,7 @@ public class moveToObject{
         angleController = 
             new ProfiledPIDController(
                 6.2, 0, 0, 
-                new TrapezoidProfile.Constraints(180, 90) );
+                new TrapezoidProfile.Constraints(360, 240) );
         angleController.enableContinuousInput( -180, 180 );
         angleController.setTolerance( 0.0 );
         angleController.setGoal(0);
