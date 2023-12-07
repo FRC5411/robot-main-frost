@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -43,67 +45,47 @@ public class moveToObject{
 
     public Command collectGamepiece() {
         return new SequentialCommandGroup(
-            toAngle(1.5),
+            angleToGamePiece(1.5),
             arm.moveToPositionTerminatingCommand(positions.Substation),
-            toGamePiece(),
+            moveToGamePiece(),
             arm.moveToPositionCommand(positions.Idle)
         );
     }
 
-    public Command toAngle(double tolerance) {
-        Debouncer db = new Debouncer(0.2);
-
-        return new FunctionalCommand(
-            () -> initSystemsAndController(tolerance, true), 
-            () -> {
-                System.out.println(" \n \n \n \n RUNN ANGLE \n \n \n \n ");
-                System.out.println(" \n \n \n \n"+intake.getPiece()+"\n \n \n \n ");
-                double output = getControllerOutput();
-                Telemetry.setValue("RLimelight/Output", output);
-
-                drivetrain.driveFromChassisSpeedsLocked ( 
-                    new ChassisSpeeds( 
-                        0, 0, 
-                        output ) );
-
-            }, 
-            (interrupted) -> {
-                System.out.println(" \n \n \n \n END ANGLE \n \n \n \n ");
-            },
-            () -> db.calculate(angleController.atGoal()), 
-            drivetrain);
+    public Command angleToGamePiece(double tolerance) {
+            return moveToObjectCommand(
+                0, tolerance, true, 0.2, 
+                () -> angleController.atGoal());
     }
 
-    public Command toGamePiece() {
-        Debouncer db = new Debouncer(0.1);
+    public Command moveToGamePiece() {
+        return moveToObjectCommand(
+            0.5, 0, false, 0.1, 
+            () -> intake.getPiece() );
+    }
 
-        return new FunctionalCommand(
-            () -> {
-                initSystemsAndController(0, false);
-                drivetrain.setRobotOriented(true);
-            },
-            () -> {
-                System.out.println(" \n \n \n \n RUN MOVE \n \n \n \n ");
-                drivetrain.driveFromChassisSpeeds( 
+    public Command moveToObjectCommand(
+        double forwardSpeed, double tolerance, boolean shouldReset, 
+        double debounceTime, BooleanSupplier endCondition) {  
+            Debouncer db = new Debouncer(debounceTime);
+            
+            return new FunctionalCommand(
+            () -> initSystemsAndController(tolerance, shouldReset),
+            () -> drivetrain.driveFromChassisSpeeds( 
                     new ChassisSpeeds( 
-                        0.5, 0.0, 
-                        getControllerOutput() ) ); }, 
+                        forwardSpeed, 0.0, 
+                        getControllerOutput() ) ), 
             (interrupted) -> {
                 System.out.println(" \n \n END MOVE \n \n ");
                 drivetrain.setRobotOriented(false);
             }, 
-            () -> ( db.calculate( intake.getPiece() ) ), 
+            () -> db.calculate( endCondition.getAsBoolean() ), 
             drivetrain);
     }
 
     public void initSystemsAndController(double tolerance, boolean reset) {
         vision.setPipelineIndices(LL.gamePiecePipelineIndex);
-        setMode();
-        if(reset) angleController.reset( vision.getCenterLimelight().getYaw() );
-        angleController.setTolerance(tolerance);
-    }
 
-    public void setMode() {
         if(vision.getCenterLimelight().getObjectType().equals("cone")) {
             intake.setMode(GamePieces.Cone);
             leds.turnYellow().initialize();
@@ -112,10 +94,18 @@ public class moveToObject{
             intake.setMode(GamePieces.Cube);
             leds.turnPurple().initialize();
         }
+
+        if(reset) angleController.reset( vision.getCenterLimelight().getYaw() );
+        angleController.setTolerance(tolerance);
+
+        drivetrain.setRobotOriented(true);
     }
 
     public double getControllerOutput() {
-        return Math.toRadians( angleController.calculate( vision.getCenterLimelight().getYaw() ) )
-        + Math.toRadians( Math.signum( getControllerOutput() ) * 5 );
+        double output = Math.toRadians( angleController.calculate( vision.getCenterLimelight().getYaw() ) )
+                        + Math.toRadians( Math.signum( getControllerOutput() ) * 5 );
+
+        Telemetry.setValue("RLimelight/output", output);
+        return output;
     }
 }
