@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.lib;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -8,7 +8,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import frc.lib.SimpleUtils;
 
 public class HolonomicController {
     private ProfiledPIDController xController;

@@ -4,32 +4,25 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Limelight;
+import frc.robot.Constants.LL;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 
 public class VisionSubsystem extends SubsystemBase{
     private Limelight centerLimelight;
-    private Limelight leftLimelight;
-    private Limelight rightLimelight;
+    // private Limelight leftLimelight;
+    // private Limelight rightLimelight;
     private Debouncer deb;
     private Limelight[] limelights;
 
     public VisionSubsystem() {
-        centerLimelight = new Limelight("limelight-limeone", new Pose3d());
-        // leftLimelight = new Limelight("limelight-left", 
-        //     new Pose3d( 
-        //         new Translation3d(0.13, 0.09, 0.0),
-        //         new Rotation3d(Math.toRadians(43), 0, 0)));
-        // leftLimelight = new Limelight("limelight-left", 
-        //     new Pose3d( 
-        //         new Translation3d(-0.13, 0.09, 0.0),
-        //         new Rotation3d(Math.toRadians(43), 0, 0)));
-        centerLimelight.setPipelineIndex(1);
+        centerLimelight = new Limelight(LL.centerLLNT, new Pose3d());
+        // leftLimelight = new Limelight(LL.leftLLNT,  LL.leftLLOffsetMeters);
+        // leftLimelight = new Limelight(LL.rightLLNT, LL.rightLLOffsetMeters);
+        centerLimelight.setPipelineIndex(LL.gamePiecePipelineIndex);
         deb = new Debouncer(0.2);
 
         limelights = new Limelight[] {
@@ -47,24 +40,19 @@ public class VisionSubsystem extends SubsystemBase{
         return getCenterLimelight().getTarget().getTranslation().getNorm();
     }
 
-    public void addVisionMeasurement(SwerveDrivePoseEstimator poseEstimator) {
-        if ( deb.calculate( getCenterLimelight().hasTarget() ) ) {
-            System.out.println("MY FATHER" + Timer.getFPGATimestamp());
-            poseEstimator.addVisionMeasurement(
-                getCenterLimelight().getPose(), 
-                Timer.getFPGATimestamp() - getCenterLimelight().getLatency(),
-            createVisionVector(getCenterLimelight()) );
-        }
+    public void setPipelineIndices(int index) {
+        for(Limelight cam : limelights) cam.setPipelineIndex(index);
+    }
 
-        // for(int i = 0; i < limelights.length; i++) {
-        //     if ( deb.calculate( getCenterLimelight().hasTarget() ) ) {
-        //         System.out.println("MY FATHER" + Timer.getFPGATimestamp());
-        //         poseEstimator.addVisionMeasurement(
-        //             limelights[i].getPose(), 
-        //             Timer.getFPGATimestamp() - limelights[i].getLatency(),
-        //         createVisionVector() );
-        //     }
-        // }
+    public void addVisionMeasurement(SwerveDrivePoseEstimator poseEstimator) {
+        for(Limelight cam : limelights)
+            if ( deb.calculate( cam.hasTarget() ) ) {
+                System.out.println("MY FATHER" + Timer.getFPGATimestamp());
+                poseEstimator.addVisionMeasurement(
+                    cam.getPose(), 
+                    Timer.getFPGATimestamp() - cam.getLatency(),
+                createVisionVector( cam ) );
+            }
     }
 
     public Vector<N3> createVisionVector(Limelight cam) {

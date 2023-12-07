@@ -40,17 +40,16 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.lib.FrostConfigs;
+import frc.lib.HolonomicController;
+import frc.lib.HolonomicFeedforward;
 import frc.lib.SimpleUtils;
 import frc.lib.SwerveModule;
 import frc.lib.Telemetry;
-
+import frc.lib.HolonomicController.HolonomicConstraints;
+import frc.lib.HolonomicFeedforward.FFConstants;
 import frc.robot.Constants.ARM.positions;
 import frc.robot.commands.AutoBalance;
-import frc.robot.commands.HolonomicController;
-import frc.robot.commands.HolonomicFeedforward;
 import frc.robot.commands.moveToPosition;
-import frc.robot.commands.HolonomicController.HolonomicConstraints;
-import frc.robot.commands.HolonomicFeedforward.FFConstants;
 import frc.robot.RobotContainer;
 
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -240,7 +239,8 @@ public class Drivetrain extends SubsystemBase {
       this::getPose,
       this::getChassisSpeeds,
       this::driveFromChassisSpeeds,
-      this );
+      this,
+      this.vision);
 
     PathPlannerServer.startServer(6969);
 

@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.lib.Telemetry;
+import frc.robot.Constants.LL;
 import frc.robot.Constants.ARM.positions;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
@@ -95,6 +96,13 @@ public class moveToObject{
             drivetrain);
     }
 
+    public void initSystemsAndController(double tolerance, boolean reset) {
+        vision.setPipelineIndices(LL.gamePiecePipelineIndex);
+        setMode();
+        if(reset) angleController.reset( vision.getCenterLimelight().getYaw() );
+        angleController.setTolerance(tolerance);
+    }
+
     public void setMode() {
         if(vision.getCenterLimelight().getObjectType().equals("cone")) {
             intake.setMode(GamePieces.Cone);
@@ -104,13 +112,6 @@ public class moveToObject{
             intake.setMode(GamePieces.Cube);
             leds.turnPurple().initialize();
         }
-    }
-
-    public void initSystemsAndController(double tolerance, boolean reset) {
-        vision.getCenterLimelight().setPipelineIndex(1);
-        setMode();
-        if(reset) angleController.reset( vision.getCenterLimelight().getYaw() );
-        angleController.setTolerance(tolerance);
     }
 
     public double getControllerOutput() {

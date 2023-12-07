@@ -1,14 +1,16 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import frc.lib.HolonomicController;
+import frc.lib.SimpleUtils;
 import frc.lib.Telemetry;
+import frc.lib.HolonomicController.HolonomicConstraints;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.VisionSubsystem;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.commands.HolonomicController.HolonomicConstraints;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -18,17 +20,20 @@ public class moveToPosition {
     private Supplier<ChassisSpeeds> currentChassisSpeeds;
     private Consumer<ChassisSpeeds> setDesiredStates;
     private Drivetrain requirements;
+    private VisionSubsystem vision;
     private Pose2d target = new Pose2d();
 
     public moveToPosition( 
         Supplier<Pose2d> curPoseSupplier, Supplier<ChassisSpeeds> curSpeedSupplier, 
-        Consumer<ChassisSpeeds> setDesiredStates, Drivetrain requirements) {
+        Consumer<ChassisSpeeds> setDesiredStates, Drivetrain requirements, VisionSubsystem vision) {
         currentPose = curPoseSupplier;
         currentChassisSpeeds = curSpeedSupplier;
         this.setDesiredStates = setDesiredStates;
         this.requirements = requirements;
+        this.vision = vision;
     }
 
+    // Regular Commands
     public Command generateMoveToPositionCommand( 
         Pose2d targetPose, Pose2d tolerance, HolonomicController controller ) {
         return generateMoveToPositionCommand( 
@@ -47,6 +52,7 @@ public class moveToPosition {
 
         return new FunctionalCommand(
             () -> {
+                vision.setPipelineIndices(0);
                 this.target = targetPose;
                 controller.setTolerance( tolerance );
                 controller.reset( currentPose.get(), currentChassisSpeeds.get() );
@@ -59,7 +65,7 @@ public class moveToPosition {
                 controller.yIZone(yKi, currentPose.get(), 0.5);
                 controller.thetaIZone(thetaKi, currentPose.get(), 5);
 
-                setDesiredStates.accept( discretize( controller.calculateWithFF( currentPose.get() ) ) );
+                setDesiredStates.accept( SimpleUtils.discretize( controller.calculateWithFF( currentPose.get() ) ) );
 
                 requirements.field2d.getObject( "Setpoint" ).setPose( controller.getPositionSetpoint() );
                 Telemetry.getValue("PathPlanner/AtGoal", controller.atGoal() );
@@ -71,6 +77,7 @@ public class moveToPosition {
             requirements) ;
     }
 
+    // Timed Commands
     public Command generateMoveToPositionCommandTimed(
         Pose2d targetPose, Pose2d tolerance, 
         HolonomicConstraints profiles, HolonomicController controller ) {
@@ -83,18 +90,6 @@ public class moveToPosition {
         Telemetry.setValue("Alignment/MOM", profiles.getLongestTime(targetPose, targetChassisSpeeds));
         return generateMoveToPositionCommand(targetPose, targetChassisSpeeds, tolerance, controller)
             .withTimeout(profiles.getLongestTime(targetPose, targetChassisSpeeds) + 0.5);
-    }
-
-    public ChassisSpeeds discretize(ChassisSpeeds speeds) {
-        double dt = 0.02;
-        var desiredDeltaPose = new Pose2d(
-          speeds.vxMetersPerSecond * dt, 
-          speeds.vyMetersPerSecond * dt, 
-          new Rotation2d(speeds.omegaRadiansPerSecond * dt * 3)
-        );
-        var twist = new Pose2d().log(desiredDeltaPose);
-    
-        return new ChassisSpeeds((twist.dx / dt), (twist.dy / dt), (speeds.omegaRadiansPerSecond));
     }
 
     public Pose2d getTarget() {

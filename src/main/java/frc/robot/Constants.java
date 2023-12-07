@@ -7,6 +7,10 @@ package frc.robot;
 import frc.lib.ArmPosition;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -124,8 +128,19 @@ public final class Constants {
     }
 
     public static class LL {
-        public static final double SLOPE = 0;
-        public static final double YINT = 0;
+        public static final String centerLLNT = "limelight-limeone";
+        public static final String   leftLLNT = "limelight-limetwo";
+        public static final String  rightLLNT = "limelight";
+        
+        public static final Pose3d rightLLOffsetMeters = new Pose3d( 
+            new Translation3d(-0.13, 0.09, 0.0),
+            new Rotation3d(Math.toRadians(43), 0, 0));
+        public static final Pose3d leftLLOffsetMeters = new Pose3d( 
+            new Translation3d(-0.13, 0.09, 0.0),
+            new Rotation3d(Math.toRadians(43), 0, 0));
+
+        public static final int apriltagPipelineIndex = 0;
+        public static final int gamePiecePipelineIndex = 1;
     }
 
     public static final class ARM {
