@@ -54,7 +54,8 @@
         "Arm": {
           "manualTarget": {
             "open": true
-          }
+          },
+          "open": true
         },
         "LEDS": {
           "open": true
@@ -106,7 +107,8 @@
               "open": true
             },
             "open": true
-          }
+          },
+          "open": true
         },
         "general": {
           "PDH": {
