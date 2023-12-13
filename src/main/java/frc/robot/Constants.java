@@ -129,11 +129,11 @@ public final class Constants {
 
     public static class LL {
         public static final String centerLLNT = "limelight-limeone";
-        public static final String   leftLLNT = "limelight-limetwo";
-        public static final String  rightLLNT = "limelight";
+        public static final String   leftLLNT = "limelight-left";
+        public static final String  rightLLNT = "limelight-right";
         
         public static final Pose3d rightLLOffsetMeters = new Pose3d( 
-            new Translation3d(-0.13, 0.09, 0.0),
+            new Translation3d(0.13, 0.09, 0.0),
             new Rotation3d(Math.toRadians(43), 0, 0));
         public static final Pose3d leftLLOffsetMeters = new Pose3d( 
             new Translation3d(-0.13, 0.09, 0.0),
@@ -168,19 +168,19 @@ public final class Constants {
         public static final double STAGE_1_OFFSET = 203;
         public static final double STAGE_2_OFFSET = 270;
         public static final double STAGE_3_OFFSET = 210;
-        public static ArmPosition scoreHighConePosition = new ArmPosition(207, changeScope(130), 145);
-        public static ArmPosition dipHighConePosition = new ArmPosition(198, changeScope(108), 136);
-        public static ArmPosition scoreHighCubePosition = new ArmPosition(185, changeScope(122), 127);
-        public static ArmPosition scoreMidConePosition = new ArmPosition(133.5, changeScope(160), 160);
-        public static ArmPosition dipMidConePosition = new ArmPosition(133.5, changeScope(158), 140);
-        public static ArmPosition scoreMidCubePosition = new ArmPosition(133.5, changeScope(165), 97);
-        public static ArmPosition idlePosition = new ArmPosition(133.5, 45, 36);// 131 217 50
-        public static ArmPosition scoreLowPosition = new ArmPosition(133.5, changeScope(165), 52);
-        public static ArmPosition floorPosition = new ArmPosition(133.5, changeScope(88), 142);
-        public static ArmPosition autonFloorPosition = new ArmPosition(133.5, changeScope(83), 132);
-        public static ArmPosition floorAltPosition = new ArmPosition(133.5, changeScope(120), 43);
+        public static ArmPosition scoreHighConePosition = new ArmPosition(207, changeScopeAgain(changeScope(130)), 145);
+        public static ArmPosition dipHighConePosition = new ArmPosition(198, changeScopeAgain(changeScope(108)), 136);
+        public static ArmPosition scoreHighCubePosition = new ArmPosition(185, changeScopeAgain(changeScope(122)), 127);
+        public static ArmPosition scoreMidConePosition = new ArmPosition(133.5, changeScopeAgain(changeScope(160)), 160);
+        public static ArmPosition dipMidConePosition = new ArmPosition(133.5, changeScopeAgain(changeScope(158)), 140);
+        public static ArmPosition scoreMidCubePosition = new ArmPosition(133.5, changeScopeAgain(changeScope(165)), 97);
+        public static ArmPosition idlePosition = new ArmPosition(133.5, changeScopeAgain(45), 36);// 131 217 50
+        public static ArmPosition scoreLowPosition = new ArmPosition(133.5, changeScopeAgain(changeScope(165)), 52);
+        public static ArmPosition floorPosition = new ArmPosition(133.5, changeScopeAgain(changeScope(88)), 142);
+        public static ArmPosition autonFloorPosition = new ArmPosition(133.5, changeScopeAgain(changeScope(83)), 132);
+        public static ArmPosition floorAltPosition = new ArmPosition(133.5, changeScopeAgain(changeScope(120)), 43);
         // public static ArmPosition floorAltCubePosition = new ArmPosition(133.5, 91, 43);
-        public static ArmPosition substationPosition = new ArmPosition(133.5, changeScope(182), 111);
+        public static ArmPosition substationPosition = new ArmPosition(133.5, changeScopeAgain(changeScope(182)), 111);
 
         public static final double THETA_SPEED = 1;
         public static final double X_SPEED = 0.5;
@@ -219,6 +219,13 @@ public final class Constants {
         double newAngle = angle - 167;
         if(newAngle < 0) return 360 + newAngle;
         return newAngle;
+    }
+
+    public static double changeScopeAgain(double angle) {
+        double offset = 45 - 318;
+        double offsetAngle = angle + offset;
+        if(angle < 0) return 360 + offsetAngle;
+        return offsetAngle;
     }
 
     public static class POP {

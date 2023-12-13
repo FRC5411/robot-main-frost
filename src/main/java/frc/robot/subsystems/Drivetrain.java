@@ -183,7 +183,7 @@ public class Drivetrain extends SubsystemBase {
     swerveModules[2] = new SwerveModule( BL_Drive, BL_Azimuth, BL_Position, BL_PID, BL_kF, "BL" );
     swerveModules[3] = new SwerveModule( BR_Drive, BR_Azimuth, BR_Position, BR_PID, BR_kF, "BR" );
 
-      FrostConfigs.configShwerve(shwerveDrive);
+    FrostConfigs.configShwerve(shwerveDrive);
 
     m_poseEstimator = new SwerveDrivePoseEstimator(
       m_kinematics, 
@@ -278,7 +278,9 @@ public class Drivetrain extends SubsystemBase {
 
     field2d.setRobotPose(_robotPose);
     field2d.getObject("Pure Odometry").setPose(m_Odometry.getPoseMeters());
-    field2d.getObject("Pure Camera").setPose(vision.getCenterLimelight().getPose());
+    field2d.getObject("Pure Camera Center").setPose(vision.getCenterLimelight().getPose());
+    field2d.getObject("Pure Camera Left").setPose(vision.getLeftLimelight().getPose());
+    field2d.getObject("Pure Camera Right").setPose(vision.getRightLimelight().getPose());
     SmartDashboard.putData(field2d);    
   }
 
@@ -308,6 +310,15 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void driveFromChassisSpeeds (ChassisSpeeds speeds) {
+    ChassisSpeeds.fromFieldRelativeSpeeds(
+      speeds, m_poseEstimator.getEstimatedPosition().getRotation() );
+
+    modules = m_kinematics.toSwerveModuleStates( speeds );
+    SwerveDriveKinematics.desaturateWheelSpeeds(modules, MAX_LINEAR_SPEED);
+    setDesiredStates();
+  }
+
+  public void driveFromChassisSpeedsField (ChassisSpeeds speeds) {
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
       speeds, m_poseEstimator.getEstimatedPosition().getRotation() );
 

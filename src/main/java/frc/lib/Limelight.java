@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 public class Limelight {
   private NetworkTable limelight;
   private int pipelineIndex;
-  private double[] posevalues;
   private Pose3d offset;
   private String key;
 
@@ -54,16 +53,16 @@ public class Limelight {
   }
 
   public Pose2d getPose() {
-    posevalues = limelight.getEntry("botpose_wpiblue").getDoubleArray(new double[6]);
+    double[] posevalues = limelight.getEntry("botpose_wpiblue").getDoubleArray(new double[6]);
 
-    Translation2d translate = new Translation2d(posevalues[0], posevalues[1]);
-    Rotation2d rotation = Rotation2d.fromDegrees(posevalues[3]);
+    Translation2d translate = new Translation2d(posevalues[0]  - offset.getX(), posevalues[1] - offset.getY());
+    Rotation2d rotation = Rotation2d.fromDegrees(posevalues[3] - offset.getRotation().getX());
     
     return new Pose2d(translate, rotation);
   }
 
   public Pose2d getTarget() {
-    posevalues = limelight.getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
+    double[] posevalues = limelight.getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
     Translation2d translate = new Translation2d(posevalues[0] - offset.getX(), posevalues[1] - offset.getY());
     Rotation2d rotation = new Rotation2d(Math.toRadians(posevalues[3]) - offset.getRotation().getX());
     return new Pose2d(translate, rotation);

@@ -46,7 +46,7 @@ public class moveToObject{
     public Command collectGamepiece() {
         return new SequentialCommandGroup(
             angleToGamePiece(1.5)/*.withTimeout(3)*/,
-            arm.moveToPositionTerminatingCommand(positions.Substation)/*.withTimeout(3)*/,
+            // arm.moveToPositionTerminatingCommand(positions.Substation)/*.withTimeout(3)*/,
             moveToGamePiece()/*.withTimeout(3)*/,
             arm.moveToPositionCommand(positions.Idle)
         );
@@ -102,7 +102,7 @@ public class moveToObject{
     }
 
     public double getControllerOutput() {
-        double output = Math.toRadians( angleController.calculate( 3 ) )
+        double output = Math.toRadians( angleController.calculate( vision.getCenterLimelight().getYaw() ) )
                         + Math.toRadians( Math.signum( angleController.getPositionError() ) * 5 );
 
         Telemetry.setValue("RLimelight/output", output);

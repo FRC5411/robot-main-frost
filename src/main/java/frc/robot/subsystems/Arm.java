@@ -673,9 +673,9 @@ public class Arm extends SubsystemBase {
             Telemetry.setValue("Arm/stage2/PIDVOLT", stage2Calc);
             Telemetry.setValue("Arm/stage3/PIDVOLT", stage3Calc);
 
-            m_stage1.setVoltage(stage1Calc);
-            m_stage2.setVoltage(stage2Calc);
-            m_stage3.setVoltage(stage3Calc);
+            // m_stage1.setVoltage(stage1Calc);
+            // m_stage2.setVoltage(stage2Calc);
+            // m_stage3.setVoltage(stage3Calc);
         } else {
             // prevent CAN timeouts when disabled, actual motor stoppage is handled at a lower level
             m_stage1.set(0);
