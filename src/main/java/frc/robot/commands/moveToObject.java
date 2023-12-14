@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.lib.Telemetry;
 import frc.robot.Constants.LL;
-import frc.robot.Constants.ARM.positions;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LEDs;
@@ -45,10 +44,10 @@ public class moveToObject{
 
     public Command collectGamepiece() {
         return new SequentialCommandGroup(
-            angleToGamePiece(1.5)/*.withTimeout(3)*/,
-            // arm.moveToPositionTerminatingCommand(positions.Substation)/*.withTimeout(3)*/,
-            moveToGamePiece()/*.withTimeout(3)*/,
-            arm.moveToPositionCommand(positions.Idle)
+            angleToGamePiece(1.5).withTimeout(3),
+            // arm.moveToPositionTerminatingCommand(positions.Substation).withTimeout(3),
+            moveToGamePiece().withTimeout(3)
+            //arm.moveToPositionCommand(positions.Idle)
         );
     }
 

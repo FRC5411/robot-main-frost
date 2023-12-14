@@ -33,6 +33,19 @@ public class moveToPosition {
         this.vision = vision;
     }
 
+    // Timed Commands
+    public Command generateMoveToPositionCommandTimed(Pose2d targetPose, Pose2d tolerance, 
+            HolonomicConstraints profiles, HolonomicController controller ) {
+        return generateMoveToPositionCommandTimed(targetPose, new ChassisSpeeds(), tolerance, profiles, controller);
+    }
+    
+    public Command generateMoveToPositionCommandTimed( Pose2d targetPose, ChassisSpeeds targetChassisSpeeds, 
+            Pose2d tolerance,  HolonomicConstraints profiles, HolonomicController controller) {
+            Telemetry.setValue("Alignment/MOM", profiles.getLongestTime(targetPose, targetChassisSpeeds));
+        return generateMoveToPositionCommand(targetPose, targetChassisSpeeds, tolerance, controller)
+            .withTimeout(profiles.getLongestTime(targetPose, targetChassisSpeeds) + 0.5);
+    }
+
     // Regular Commands
     public Command generateMoveToPositionCommand( 
         Pose2d targetPose, Pose2d tolerance, HolonomicController controller ) {
@@ -75,21 +88,6 @@ public class moveToPosition {
             (interrupted) -> { requirements.joystickDrive(0, 0, 0); }, 
             () -> controller.atGoal(),
             requirements) ;
-    }
-
-    // Timed Commands
-    public Command generateMoveToPositionCommandTimed(
-        Pose2d targetPose, Pose2d tolerance, 
-        HolonomicConstraints profiles, HolonomicController controller ) {
-        return generateMoveToPositionCommandTimed(targetPose, new ChassisSpeeds(), tolerance, profiles, controller);
-    }
-
-    public Command generateMoveToPositionCommandTimed(
-        Pose2d targetPose, ChassisSpeeds targetChassisSpeeds, 
-        Pose2d tolerance,  HolonomicConstraints profiles, HolonomicController controller) {
-        Telemetry.setValue("Alignment/MOM", profiles.getLongestTime(targetPose, targetChassisSpeeds));
-        return generateMoveToPositionCommand(targetPose, targetChassisSpeeds, tolerance, controller)
-            .withTimeout(profiles.getLongestTime(targetPose, targetChassisSpeeds) + 0.5);
     }
 
     public Pose2d getTarget() {

@@ -4,6 +4,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.Limelight;
+import frc.lib.Telemetry;
 import frc.robot.Constants.LL;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -22,9 +23,11 @@ public class VisionSubsystem extends SubsystemBase{
         centerLimelight = new Limelight(LL.centerLLNT, new Pose3d());
         leftLimelight = new Limelight(LL.leftLLNT,  LL.leftLLOffsetMeters);
         rightLimelight = new Limelight(LL.rightLLNT, LL.rightLLOffsetMeters);
+
         centerLimelight.setPipelineIndex(LL.gamePiecePipelineIndex);
-        leftLimelight.setPipelineIndex(0);
-        rightLimelight.setPipelineIndex(0);
+
+        leftLimelight.setPipelineIndex(LL.apriltagPipelineIndex);
+        rightLimelight.setPipelineIndex(LL.apriltagPipelineIndex);
         deb = new Debouncer(0.2);
 
         limelights = new Limelight[] {
@@ -55,24 +58,24 @@ public class VisionSubsystem extends SubsystemBase{
     }
 
     public void addVisionMeasurement(SwerveDrivePoseEstimator poseEstimator) {
-        if ( deb.calculate( centerLimelight.hasTarget() ) ) {
-            System.out.println("MY FATHER" + Timer.getFPGATimestamp());
+        if ( deb.calculate( centerLimelight.hasTarget())  && centerLimelight.getPipeLineIndex() == LL.apriltagPipelineIndex ) {
+            System.out.println("MY FATHER 1" + Timer.getFPGATimestamp());
             poseEstimator.addVisionMeasurement(
                 centerLimelight.getPose(), 
                 Timer.getFPGATimestamp() - centerLimelight.getLatency(),
             createVisionVector( centerLimelight ) );
         }
 
-        if ( deb.calculate( leftLimelight.hasTarget() ) ) {
-            System.out.println("MY FATHER" + Timer.getFPGATimestamp());
+        if ( deb.calculate( leftLimelight.hasTarget() )  && leftLimelight.getPipeLineIndex() == LL.apriltagPipelineIndex ) {
+            System.out.println("MY FATHER 2" + Timer.getFPGATimestamp());
             poseEstimator.addVisionMeasurement(
                 leftLimelight.getPose(), 
                 Timer.getFPGATimestamp() - leftLimelight.getLatency(),
             createVisionVector( leftLimelight ) );
         }
 
-        if ( deb.calculate( rightLimelight.hasTarget() ) ) {
-            System.out.println("MY FATHER" + Timer.getFPGATimestamp());
+        if ( deb.calculate( rightLimelight.hasTarget() ) && rightLimelight.getPipeLineIndex() == LL.apriltagPipelineIndex ) {
+            System.out.println("MY FATHER 3" + Timer.getFPGATimestamp());
             poseEstimator.addVisionMeasurement(
                 rightLimelight.getPose(), 
                 Timer.getFPGATimestamp() - rightLimelight.getLatency(),
@@ -92,5 +95,10 @@ public class VisionSubsystem extends SubsystemBase{
         centerLimelight.periodic();
         leftLimelight.periodic();
         rightLimelight.periodic();
+
+        Telemetry.setValue("RLIMELIGHT/XLEFT", centerLimelight.getPose().minus(leftLimelight.getPose()).getTranslation().getX());
+        Telemetry.setValue("RLIMELIGHT/XRIGHT", centerLimelight.getPose().minus(rightLimelight.getPose()).getTranslation().getX());
+        Telemetry.setValue("RLIMELIGHT/YLEFT", centerLimelight.getPose().minus(leftLimelight.getPose()).getTranslation().getY());
+        Telemetry.setValue("RLIMELIGHT/YRIGHT", centerLimelight.getPose().minus(rightLimelight.getPose()).getTranslation().getY());
     }
 }
