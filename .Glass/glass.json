@@ -51,6 +51,11 @@
             "open": true
           }
         },
+        "Rlimelight-left": {
+          "Odometry": {
+            "open": true
+          }
+        },
         "Rlimelight-limeone": {
           "2d": {
             "open": true
@@ -58,6 +63,7 @@
           "Odometry": {
             "open": true
           },
+          "open": true,
           "pip": {
             "open": true
           }
@@ -68,11 +74,20 @@
           },
           "open": true
         },
+        "Rlimelight-right": {
+          "Odometry": {
+            "open": true
+          },
+          "open": true
+        },
         "drivetrain": {
           "Align": {
             "open": true
           },
           "chassis": {
+            "open": true
+          },
+          "chassisOdometry": {
             "open": true
           },
           "kinematics": {
@@ -112,13 +127,13 @@
               "open": true
             },
             "open": true
-          }
+          },
+          "open": true
         },
         "general": {
           "autonomous": {
             "open": true
-          },
-          "open": true
+          }
         },
         "limelight-limeone": {
           "2d": {
@@ -137,6 +152,13 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Field": "Field2d"
+    },
+    "windows": {
+      "/SmartDashboard/Field": {
+        "window": {
+          "visible": true
+        }
+      }
     }
   },
   "NetworkTables Settings": {

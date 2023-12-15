@@ -1,5 +1,6 @@
 package frc.lib;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -14,13 +15,14 @@ public class Limelight {
   private int pipelineIndex;
   private Pose3d offset;
   private String key;
+  private Debouncer db;
 
-  public Limelight(String key, Pose3d offset) {
+  public Limelight(String key, Pose3d offset, double time) {
     this.key = key;
     limelight = NetworkTableInstance.getDefault().getTable(key);
-    // limelight.getEntry("pipeline").setNumber(1);
     this.offset = offset;
     setPipelineIndex(1);
+    db = new Debouncer(time);
   }
 
   public void setPipelineIndex(int index) {
@@ -34,6 +36,10 @@ public class Limelight {
 
   public boolean hasTarget() {
     return ( limelight.getEntry("tv").getDouble(0) == 1 );
+  }
+
+  public boolean hasTargetDebounced() {
+    return db.calculate(hasTarget());
   }
 
   public String getObjectType() {

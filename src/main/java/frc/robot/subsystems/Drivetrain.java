@@ -30,6 +30,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -47,6 +48,7 @@ import frc.lib.SwerveModule;
 import frc.lib.Telemetry;
 import frc.lib.HolonomicController.HolonomicConstraints;
 import frc.lib.HolonomicFeedforward.FFConstants;
+import frc.robot.Constants.LL;
 import frc.robot.Constants.ARM.positions;
 import frc.robot.commands.AutoBalance;
 import frc.robot.commands.moveToPosition;
@@ -207,18 +209,18 @@ public class Drivetrain extends SubsystemBase {
    if (RobotContainer.getDriverAlliance().equals(DriverStation.Alliance.Red)) {
       _coneWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
       _coneWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
-      _coneWaypoints.add(new Pose2d(14.80, 4.98, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.80, 3.94 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.80, 3.38 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.80, 2.28 - 0.05, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.80, 1.67, new Rotation2d()));
-      _coneWaypoints.add(new Pose2d(14.80, 0.48, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.70, 4.98, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.70, 3.94 - 0.05, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.70, 3.38 - 0.05, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.70, 2.28 - 0.05, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.70, 1.67, new Rotation2d()));
+      _coneWaypoints.add(new Pose2d(14.70, 0.48, new Rotation2d()));
 
       _cubeWaypoints.add(new Pose2d(0.76, 6.13, Rotation2d.fromDegrees(180)));
       _cubeWaypoints.add(new Pose2d(0.76, 7.49, Rotation2d.fromDegrees(180)));
-      _cubeWaypoints.add(new Pose2d(14.80, 1.13 - 0.05, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(14.80, 2.95 - 0.05, new Rotation2d()));
-      _cubeWaypoints.add(new Pose2d(14.80, 4.52 - 0.05, new Rotation2d()));
+      _cubeWaypoints.add(new Pose2d(14.70, 1.13 - 0.05, new Rotation2d()));
+      _cubeWaypoints.add(new Pose2d(14.70, 2.95 - 0.05, new Rotation2d()));
+      _cubeWaypoints.add(new Pose2d(14.70, 4.52 - 0.05, new Rotation2d()));
     } else if (DriverStation.getAlliance().equals(DriverStation.Alliance.Blue)) {
       _coneWaypoints.add(new Pose2d(15.79, 7.33, new Rotation2d(0)));
       _coneWaypoints.add(new Pose2d(15.79, 6.00, new Rotation2d(0)));
@@ -238,7 +240,7 @@ public class Drivetrain extends SubsystemBase {
     _moveToPosition = new moveToPosition(
       this::getPose,
       this::getChassisSpeeds,
-      this::driveFromChassisSpeeds,
+      this::driveFromChassisSpeedsField,
       this,
       this.vision);
 
@@ -256,7 +258,30 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void robotPositionTelemetry() {
-    vision.addVisionMeasurement(m_poseEstimator);
+    // vision.addVisionMeasurement(m_poseEstimator);
+    if ( vision.getCenterLimelight().hasTargetDebounced()  && vision.getCenterLimelight().getPipeLineIndex() == LL.apriltagPipelineIndex ) {
+      System.out.println("MY FATHER 1" + Timer.getFPGATimestamp());
+      m_poseEstimator.addVisionMeasurement(
+          vision.getCenterLimelight().getPose(), 
+          Timer.getFPGATimestamp() - vision.getCenterLimelight().getLatency(),
+      vision.createVisionVector( vision.getCenterLimelight() ) );
+  }
+
+  if ( vision.getLeftLimelight().hasTargetDebounced()  && vision.getLeftLimelight().getPipeLineIndex() == LL.apriltagPipelineIndex ) {
+      System.out.println("MY FATHER 2" + Timer.getFPGATimestamp());
+      m_poseEstimator.addVisionMeasurement(
+          vision.getLeftLimelight().getPose(), 
+          Timer.getFPGATimestamp() - vision.getLeftLimelight().getLatency(),
+      vision.createVisionVector( vision.getLeftLimelight() ) );
+  }
+
+  if ( vision.getRightLimelight().hasTargetDebounced() && vision.getRightLimelight().getPipeLineIndex() == LL.apriltagPipelineIndex ) {
+      System.out.println("MY FATHER 3" + Timer.getFPGATimestamp());
+      m_poseEstimator.addVisionMeasurement(
+          vision.getRightLimelight().getPose(), 
+          Timer.getFPGATimestamp() - vision.getRightLimelight().getLatency(),
+      vision.createVisionVector( vision.getRightLimelight() ) );
+  }
 
     // System.out.println("MY MOTHER" + Timer.getFPGATimestamp());
     _robotPose = m_poseEstimator.update(new Rotation2d(Math.toRadians(m_gyro.getYaw())), getSwerveModulePositions());
@@ -277,10 +302,10 @@ public class Drivetrain extends SubsystemBase {
     _lastPose = _robotPose;
 
     field2d.setRobotPose(_robotPose);
-    field2d.getObject("Pure Odometry").setPose(m_Odometry.getPoseMeters());
-    field2d.getObject("Pure Camera Center").setPose(vision.getCenterLimelight().getPose());
-    field2d.getObject("Pure Camera Left").setPose(vision.getLeftLimelight().getPose());
-    field2d.getObject("Pure Camera Right").setPose(vision.getRightLimelight().getPose());
+    // field2d.getObject("Pure Odometry").setPose(m_Odometry.getPoseMeters());
+    // field2d.getObject("Pure Camera Center").setPose(vision.getCenterLimelight().getPose());
+    // field2d.getObject("Pure Camera Left").setPose(vision.getLeftLimelight().getPose());
+    // field2d.getObject("Pure Camera Right").setPose(vision.getRightLimelight().getPose());
     SmartDashboard.putData(field2d);    
   }
 
